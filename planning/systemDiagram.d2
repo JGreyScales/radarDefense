@@ -205,15 +205,18 @@ Main_Logic: {
 
 # Class Definitions
 
-Vehicle: {
+Location: {
   shape: class
-
   -String name
-  -string id
 
   -float32 x
   -float32 y
   -float32 z
+}
+
+Vehicle: {
+  shape: class
+  -string id
 
   -nullable Pilot pilot
   -nullable Radar radar
@@ -231,18 +234,18 @@ Vehicle: {
   "-Array<Vehicle> beingTrackedBy"
 
   "+abstract tick()"
-  "+abstract move()"
+  "+abstract move(Location target)"
   "+abstract avoidIncoming()"
-  "+abstact engage()"
+  "+abstact engage(Vehicle target)"
 }
 
 DriveAble: {
   shape: class
 
   +tick()
-  +move()
+  +move(Location target)
   +avoidIncoming()
-  +engage()
+  +engage(Vehicle target)
 }
 
 Flyable: {
@@ -270,9 +273,9 @@ Flyable: {
   -uint8 flareCount
 
   +tick()
-  +move()
+  +move(Location target)
   +avoidIncoming()
-  +engage()
+  +engage(Vehicle target)
 }
 
 Pilot: {
@@ -388,6 +391,8 @@ Weapon: {
 }
 
 # Connection definitions
+Location -> Vehicle: composite of
+
 Vehicle -> Flyable: composite of
 Vehicle -> DriveAble: composite of
 
