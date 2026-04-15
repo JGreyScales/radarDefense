@@ -248,6 +248,8 @@ DriveAble: {
 Flyable: {
   shape: class
 
+  -bool despawnIfCantHitTarget
+
   -uint8 maximumAltitude
 
   -uint wepTimer
@@ -302,6 +304,9 @@ Radar: {
 
   -uint8 scanChunkSize
 
+  -uint8 datalinkRange
+  -Flyable datalinkChild
+
   "+Array<Vehicle> scanChunk()"
   "+abstract Vehicle selectBestTarget(Array<Vehicle>)"
   "+Array<Vehicle> hitableTargets(Weapon selectedWeapon)": we will dumb this down and make it only compute with one weapon per tick
@@ -315,6 +320,11 @@ InfraredSeeker: {
   -uint4 flareResistanceRear
   -uint4 flareResistanceSide
 
+  "+Vehicle selectBestTarget(Array<Vehicle>)"
+}
+
+antiRadiationSeeker: {
+  shape: class
   "+Vehicle selectBestTarget(Array<Vehicle>)"
 }
 
@@ -355,7 +365,7 @@ HardPoint: {
   -nullable Weapon equippedWeapon
   "-Array<Weapon> options"
 
-  "+Array<Weapon> getWeaponOptionNames()"
+  "+Array<string> getWeaponOptionNames()"
   +Weapon getEquippedWeapon()
 }
 
@@ -389,6 +399,7 @@ Radar -> SemiActiveRadar: composite of
 Radar -> SearchRadar: composite of
 Radar -> InfraredSeeker: composite of
 
+SemiActiveRadar -> antiRadiationSeeker: composite of
 SemiActiveRadar -> ActiveRadar: composite of
 
 Loadout -> HardPoint: has a
