@@ -1,7 +1,4 @@
 #include "MapIcon.h"
-#include <godot_cpp/classes/resource_loader.hpp>
-#include <godot_cpp/classes/texture2d.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
 
@@ -28,8 +25,8 @@ void MapIcon::_bind_methods() {
 }
 
 MapIcon::MapIcon() {
-    iconPath = "";
-    name = "New Icon";
+    this->iconPath = "";
+    name = "";
     x = 0.0f;
     y = 0.0f;
     z = 0.0f;
@@ -37,15 +34,47 @@ MapIcon::MapIcon() {
 
 // calls default constructor first
 MapIcon::MapIcon(String iconPath, String name) : MapIcon() {
-    this->iconPath = iconPath;
+    this->set_path(iconPath);
     this->name = name;
 }
 
 MapIcon::~MapIcon() {}
 
+
+void MapIcon::_draw() {
+    Ref<Font> font = ThemeDB::get_singleton()->get_fallback_font();
+    if (font.is_null()) return;
+
+    float x_offset = 0.0f;
+    float y_offset = 0.0f;
+    Ref<Texture2D> tex = get_texture();
+    
+    if (tex.is_valid()) {
+        if (is_centered()) {
+            x_offset = tex->get_width() / 2.0f;
+            y_offset = tex->get_height() / 2.0f;
+        } else {
+            x_offset = tex->get_width();
+        }
+    }
+
+
+    // draw the text at the top right, 10 pixels to the right of the texture edge
+    // and then 5 pixels down
+    draw_string(font, Vector2(x_offset + 10.0f, -y_offset + 5.0f), get_display_content());
+}
+
+String MapIcon::get_display_content(){
+    if (this->name.is_empty()){
+        return "";
+    }
+
+    return "Name: " + this->get_name();
+}
+
 // Setters
 void MapIcon::set_path(const String path) {
-    iconPath = path;
+    this->iconPath = path;
     if (!iconPath.is_empty()) {
         Ref<Texture2D> texture = ResourceLoader::get_singleton()->load(iconPath);
         if (texture.is_valid()) {
@@ -54,15 +83,17 @@ void MapIcon::set_path(const String path) {
     }
 }
 
-void MapIcon::set_name(const String p_name) {
-    name = p_name;
+void MapIcon::set_name(const String name) {
+    this->name = name;
+    queue_redraw();
 }
 
-void MapIcon::set_x(float p_x) {
-    x = p_x;
+void MapIcon::set_x(float x) {
+    this->x = x;
     Vector2 pos = get_position();
-    pos.x = x;
+    pos.x = this->x;
     set_position(pos);
+    queue_redraw();
 }
 
 void MapIcon::set_y(float p_y) {
@@ -70,12 +101,15 @@ void MapIcon::set_y(float p_y) {
     Vector2 pos = get_position();
     pos.y = y;
     set_position(pos);
+    queue_redraw();
 }
 
 void MapIcon::set_z(float p_z) {
     z = p_z;
     set_z_index((int)z);
+    queue_redraw();
 }
+
 
 // Getters
 String MapIcon::get_path() { return iconPath; }

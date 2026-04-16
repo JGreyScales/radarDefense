@@ -204,6 +204,15 @@ Main_Logic: {
 }
 
 # Class Definitions
+GlobalManager: {
+  shape: class
+
+  "-static GlobalManager* singleton"
+  "-static HashMap<String, Vehicle*> vehicleRegistry"
+  "-void register_vehicle_into_registry(Vehicle* vehicle)"
+  "+static GlobalManager* get_singleton()"
+  "+static Vehicle* get_object_from_id(String id)"
+}
 
 MapIcon: {
   shape: class
@@ -213,31 +222,61 @@ MapIcon: {
   -float32 x
   -float32 y
   -float32 z
+
+  +String get_display_content()
 }
 
 Vehicle: {
   shape: class
+  
+  # Private/Protected Members
   -string id
-
   -nullable Pilot pilot
   -nullable Radar radar
   -nullable Loadout loadout
-
   -uint16 maxSpeed
   -uint16 speed
   -float8 direction
-
   -uint8 radarCrossSection
   -uint8 irSignature
   -uint8 lineOfSightDetection
   -uint8 rwrDetection
+  "-Array<Vehicle*> beingTrackedBy"
 
-  "-Array<Vehicle> beingTrackedBy"
+  # Static Methods
+  "+static create_prototype(String id): Vehicle*"
+  
+  # Getters
+  +get_id(): String
+  +get_max_speed(): uint16
+  +get_display_content(): String
+  +get_speed(): uint16
+  +get_direction(): float
+  +get_radar_cross_section(): uint8
+  +get_ir_signature(): uint8
+  +get_line_of_sight_detection(): uint8
+  +get_rwr_detection(): uint8
+  +get_being_tracked_by(): Vector<Vehicle*>
 
-  "+abstract tick()"
-  "+abstract move(MapIcon target)"
-  "+abstract avoidIncoming()"
-  "+abstact engage(Vehicle target)"
+  # Setters
+  +set_max_speed(uint16 p_max_speed): void
+  +set_speed(uint16 p_speed): void
+  +set_direction(float p_direction): void
+  +set_radar_cross_section(uint8 p_rcs): void
+  +set_ir_signature(uint8 p_ir): void
+  +set_line_of_sight_detection(uint8 p_los): void
+  +set_rwr_detection(uint8 p_rwr): void
+  "+set_being_tracked_by(Vector<Vehicle*> p_tracked_by): void"
+  +add_being_tracked_by(Vehicle* tracked_by): void
+  +remove_being_tracked_by(Vehicle* tracked_by): void
+
+  # Abstract Methods
+  "+abstract tick(): void"
+  "+abstract move(MapIcon* target): void"
+  "+abstract avoid_incoming(): void"
+  "+abstract engage(Vehicle* target): void"
+  "+abstract clone(): Vehicle*"
+  "+abstract act engage(Vehicle target)"
 }
 
 DriveAble: {
