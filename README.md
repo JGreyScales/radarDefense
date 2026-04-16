@@ -1,6 +1,14 @@
 # Radar Defense
 **A Godot GDExtension Project**
 
+## required
+
+- Godot 4.6 https://godotengine.org/download/windows/
+- SCONS  
+``` bash
+pip install SCons
+```
+
 ## on first download
 
 execute in root:   
