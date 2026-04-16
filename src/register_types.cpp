@@ -7,6 +7,7 @@
 #include <godot_cpp/classes/engine.hpp>
 
 #include "Globals.h"
+#include "Radar.h"
 
 using namespace godot;
 
@@ -20,6 +21,7 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level)
 	}
 	GDREGISTER_CLASS(MapIcon);
 	GDREGISTER_ABSTRACT_CLASS(Vehicle);
+	GDREGISTER_ABSTRACT_CLASS(Radar);
 	GDREGISTER_CLASS(GlobalManager);
 
 	_global_manager = memnew(GlobalManager);
