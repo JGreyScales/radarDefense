@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://dmypjro08eiaj"]
+
+[ext_resource type="Texture2D" uid="uid://dbx66sovxd1" path="res://icon.svg" id="1_iuamg"]
+
+[node name="Node2D" type="Node2D" unique_id=1023695977]
+position = Vector2(75, 47)
+
+[node name="MapIcon" type="MapIcon" parent="." unique_id=805693127]
+
+[node name="MapIcon2" type="MapIcon" parent="." unique_id=2137536782]
+icon_path = "uid://dbx66sovxd1"
+icon_name = "Icon"
+position = Vector2(163, 126)
+texture = ExtResource("1_iuamg")
