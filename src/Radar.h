@@ -39,7 +39,7 @@ class Radar : public Area2D {
 protected:
     static void _bind_methods();
 
-    private:
+private:
     String name;
     String id;
     bool offensive;
@@ -101,14 +101,14 @@ public:
     void set_has_at_least_one_viable_target(bool newState);
     void set_cur_x(uint8_t newX);
     void set_scan_chunk_size(uint8_t newSize);
-    void set_search_are(uint8_t newSearchArea);
+    void set_search_area(uint8_t newSearchArea);
 
     void clear_radar_points();
     void add_radar_point(Vector2);
 
     
 
-    virtual Vehicle* select_best_target(Vector<Vehicle*>) = 0;
+    virtual Vehicle* select_best_target(TypedArray<Vehicle>) = 0;
 
 
 };

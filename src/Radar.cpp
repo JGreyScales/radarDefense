@@ -24,8 +24,11 @@ void Radar::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_offensive", "new_state"), &Radar::set_offensive);
     ClassDB::bind_method(D_METHOD("set_has_at_least_one_viable_target", "new_state"), &Radar::set_has_at_least_one_viable_target);
     ClassDB::bind_method(D_METHOD("set_cur_x", "new_x"), &Radar::set_cur_x);
+    ClassDB::bind_method(D_METHOD("set_maximum_range", "newMR"), &Radar::set_maximum_range);
+    ClassDB::bind_method(D_METHOD("set_precision_factor", "newPF"), &Radar::set_precision_factor);
+    ClassDB::bind_method(D_METHOD("set_search_elevation", "newSE"), &Radar::set_search_area);
     ClassDB::bind_method(D_METHOD("set_scan_chunk_size", "new_size"), &Radar::set_scan_chunk_size);
-    ClassDB::bind_method(D_METHOD("set_search_area", "new_search_area"), &Radar::set_search_are); // Matches your header typo 'set_search_are'
+    ClassDB::bind_method(D_METHOD("set_search_area", "new_search_area"), &Radar::set_search_area); // Matches your header typo 'set_search_are'
 
     // Logic Methods
     ClassDB::bind_method(D_METHOD("calculate_detection_score", "parent", "target"), &Radar::calculate_detection_score);
@@ -42,7 +45,7 @@ void Radar::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::INT, "search_area"), "set_search_area", "get_search_area");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "search_elevation"), "set_search_elevation", "get_search_elevation");
     
-    ADD_GROUP("Scan State", "scan_");
+    ADD_GROUP("Scan State", "");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "scan_cur_x"), "set_cur_x", "get_cur_x");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "scan_chunk_size"), "set_scan_chunk_size", "get_scan_chunk_size");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "has_targets"), "set_has_at_least_one_viable_target", "get_has_at_least_one_viable_target");
@@ -112,6 +115,7 @@ void Radar::scan_chunk(Vehicle *parent) {
 		if (v) {
 			// detection score 0.01 is faint signal
 			if (this->calculate_detection_score(parent, v) > 0.2f) {
+				UtilityFunctions::print("adding " + v->get_name() + " to tracked targets of " + parent->get_name());
 				this->add_target_entry(v);
 				v->add_being_tracked_by(parent);
 			}
@@ -297,7 +301,7 @@ void godot::Radar::set_scan_chunk_size(uint8_t newSize) {
 	}
 }
 
-void godot::Radar::set_search_are(uint8_t newSearchArea) {
+void godot::Radar::set_search_area(uint8_t newSearchArea) {
 	this->searchArea = newSearchArea;
 	if (this->scanChankSize > 0 && this->searchArea > 0) {
 		// rounds down

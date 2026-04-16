@@ -7,7 +7,7 @@
 #include <godot_cpp/classes/engine.hpp>
 
 #include "Globals.h"
-#include "Radar.h"
+#include "SearchRadar.h"
 
 using namespace godot;
 
@@ -23,6 +23,7 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level)
 	GDREGISTER_ABSTRACT_CLASS(Vehicle);
 	GDREGISTER_ABSTRACT_CLASS(Radar);
 	GDREGISTER_CLASS(GlobalManager);
+	GDREGISTER_CLASS(SearchRadar);
 
 	_global_manager = memnew(GlobalManager);
 

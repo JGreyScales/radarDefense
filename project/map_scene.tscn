@@ -12,3 +12,5 @@ icon_path = "uid://dbx66sovxd1"
 icon_name = "Icon"
 position = Vector2(163, 126)
 texture = ExtResource("1_iuamg")
+
+[node name="SearchRadar" type="SearchRadar" parent="." unique_id=2128544320]
