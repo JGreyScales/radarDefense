@@ -63,15 +63,15 @@ Vector<Vehicle*> godot::Radar::scan_chunk(Vehicle *parent) {
             Vector3 artificalOrigin = Vector3(parent->get_x(), parent->get_y(), parent->get_z());
             float dist = artificalOrigin.distance_to(Vector3(v->get_x(), v->get_y(), v->get_z()));
             
-            // 2. Normalized Cross Section (0.0 to 1.0)
+            // cross section is normalized to 0 - 1.0
             float cross_section = (float)v->get_radar_cross_section() / 100.0f;
 
-            float dist_factor = Math::pow(1.0f - (dist / this->get_maximum_range()), 2.0f);
+            float dist_factor = Math::pow(1.0f - (dist / (float)this->get_maximum_range()), 2.0f);
 
-            float detection_score = (cross_section * this->get_precision_factor()) * dist_factor;
+            float detection_score = (cross_section * (float)this->get_precision_factor()) * dist_factor;
 
-            // 5. Threshold check (e.g., 0.1 for a "faint" signal)
-            if (detection_score > 0.01f) { 
+            // detection score 0.01 is faint signal
+            if (detection_score > 0.015f) { 
                 detectedVehicles.push_back(v);
             }
         }
