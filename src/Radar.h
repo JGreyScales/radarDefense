@@ -50,6 +50,7 @@ public:
 
 
     Vector<Vehicle*> scan_chunk(Vehicle* parent);
+    float calculate_detection_score(Vehicle* parent, Vehicle* target);
     // Vector<Vehicle> hitable_targets(Weapon selectedWeapon)
 
     uint8_t get_precision_factor();
