@@ -1,4 +1,5 @@
 # Radar Defense
+**A Godot GDExtension Project**
 
 ## on first download
 
