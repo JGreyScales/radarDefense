@@ -1,10 +1,13 @@
 #include "Vehicle.h"
+#include "Radar.h"
 
 using namespace godot;
 
 void godot::Vehicle::_bind_methods() {
+    // Basic Identification
     ClassDB::bind_method(D_METHOD("get_id"), &Vehicle::get_id);
 
+    // Navigation & Physics
     ClassDB::bind_method(D_METHOD("get_max_speed"), &Vehicle::get_max_speed);
     ClassDB::bind_method(D_METHOD("set_max_speed", "p_max_speed"), &Vehicle::set_max_speed);
     ADD_PROPERTY(PropertyInfo(Variant::INT, "max_speed"), "set_max_speed", "get_max_speed");
@@ -17,6 +20,7 @@ void godot::Vehicle::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_direction", "p_direction"), &Vehicle::set_direction);
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "direction"), "set_direction", "get_direction");
 
+    // Signatures & Electronic Warfare
     ClassDB::bind_method(D_METHOD("get_radar_cross_section"), &Vehicle::get_radar_cross_section);
     ClassDB::bind_method(D_METHOD("set_radar_cross_section", "p_rcs"), &Vehicle::set_radar_cross_section);
     ADD_PROPERTY(PropertyInfo(Variant::INT, "radar_cross_section"), "set_radar_cross_section", "get_radar_cross_section");
@@ -25,6 +29,7 @@ void godot::Vehicle::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_ir_signature", "p_ir"), &Vehicle::set_ir_signature);
     ADD_PROPERTY(PropertyInfo(Variant::INT, "ir_signature"), "set_ir_signature", "get_ir_signature");
 
+    // Detection Stats
     ClassDB::bind_method(D_METHOD("get_line_of_sight_detection"), &Vehicle::get_line_of_sight_detection);
     ClassDB::bind_method(D_METHOD("set_line_of_sight_detection", "p_los"), &Vehicle::set_line_of_sight_detection);
     ADD_PROPERTY(PropertyInfo(Variant::INT, "line_of_sight_detection"), "set_line_of_sight_detection", "get_line_of_sight_detection");
@@ -33,15 +38,25 @@ void godot::Vehicle::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_rwr_detection", "p_rwr"), &Vehicle::set_rwr_detection);
     ADD_PROPERTY(PropertyInfo(Variant::INT, "rwr_detection"), "set_rwr_detection", "get_rwr_detection");
 
-    ClassDB::bind_method(D_METHOD("get_display_content"), &Vehicle::get_display_content);
+    // Radar System (Child Node)
+    ClassDB::bind_method(D_METHOD("get_radar"), &Vehicle::get_radar);
+    ClassDB::bind_method(D_METHOD("set_radar", "radar"), &Vehicle::set_radar);
+    // We don't necessarily need an ADD_PROPERTY for the Radar pointer itself 
+    // unless you want to assign it via the Inspector, but set_radar handles add_child.
 
+    // UI & Tracking Logic
+    ClassDB::bind_method(D_METHOD("get_display_content"), &Vehicle::get_display_content);
     ClassDB::bind_method(D_METHOD("add_being_tracked_by", "tracked_by"), &Vehicle::add_being_tracked_by);
     ClassDB::bind_method(D_METHOD("remove_being_tracked_by", "tracked_by"), &Vehicle::remove_being_tracked_by);
     
+    // Factory Method
     ClassDB::bind_static_method("Vehicle", D_METHOD("create_prototype", "id"), &Vehicle::create_prototype);
 }
 
 Vehicle::Vehicle() {
+
+    this->id = "";
+    this->radar = nullptr;
 	this->maxSpeed = 0;
     this->speed = 0;
     this->direction = 0.0f;
@@ -52,7 +67,7 @@ Vehicle::Vehicle() {
 }
 
 Vehicle::~Vehicle() {
-    
+
 }
 
 Vehicle* Vehicle::create_prototype(String id){
@@ -69,6 +84,10 @@ String Vehicle::get_display_content() {
 
 String godot::Vehicle::get_id() {
 	return this->id;
+}
+
+Radar *godot::Vehicle::get_radar() {
+	return this->radar;
 }
 
 uint16_t godot::Vehicle::get_max_speed() {
@@ -103,8 +122,13 @@ Vector<Vehicle *> godot::Vehicle::get_being_tracked_by() {
 	return this->beingTrackedBy;
 }
 
+void godot::Vehicle::set_radar(Radar *radar) {
+    this->radar = radar;
+    add_child(radar);
+}
+
 void godot::Vehicle::set_max_speed(const uint16_t p_max_speed) {
-    this->maxSpeed = p_max_speed;
+	this->maxSpeed = p_max_speed;
 }
 
 void godot::Vehicle::set_speed(const uint16_t p_speed) {

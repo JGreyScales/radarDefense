@@ -5,6 +5,7 @@
 
 namespace godot {
 
+    class Radar;
     // note this is a partially virtual class
     // therefore it will not appear in godot menus
 class Vehicle : public MapIcon {
@@ -16,8 +17,9 @@ protected:
 
 private:
     String id;
+
     // Pilot
-    // Radar
+    Radar* radar;
     // Loadout
 
     uint16_t maxSpeed;
@@ -37,6 +39,7 @@ public:
     static Vehicle* create_prototype(String id);
 
     String get_id();
+    Radar* get_radar();
     uint16_t get_max_speed();
     String get_display_content();
     uint16_t get_speed();
@@ -47,6 +50,7 @@ public:
     uint8_t get_rwr_detection();
     Vector<Vehicle*> get_being_tracked_by();
 
+    void set_radar(Radar* radar);
     void set_max_speed(const uint16_t p_max_speed);
     void set_speed(const uint16_t p_speed);
     void set_direction(const float p_direction);
