@@ -66,6 +66,9 @@ Vector<Vehicle *> godot::Radar::scan_chunk(Vehicle *parent) {
 	return detectedVehicles;
 }
 
+// this assumes that the vehicle is within the radar collision body
+// if the object is past the maximum range, it may return invalid numbers
+// but they are small enough it shouldnt be an issue if it were to occur
 float godot::Radar::calculate_detection_score(Vehicle *parent, Vehicle *target) {
 	Vector3 artificalOrigin = Vector3(parent->get_x(), parent->get_y(), parent->get_z());
 	float dist = artificalOrigin.distance_to(Vector3(target->get_x(), target->get_y(), target->get_z()));
