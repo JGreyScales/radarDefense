@@ -204,6 +204,10 @@ Main_Logic: {
 }
 
 # Class Definitions
+
+Sprite2D: {}
+Area2D: {}
+
 GlobalManager: {
   shape: class
 
@@ -431,6 +435,9 @@ Weapon: {
 }
 
 # Connection definitions
+Sprite2D -> MapIcon: composite of
+Area2D -> Radar: composite of
+
 MapIcon -> Vehicle: composite of
 
 Vehicle -> Flyable: composite of
