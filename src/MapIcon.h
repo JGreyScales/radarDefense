@@ -32,7 +32,7 @@ public:
     ~MapIcon();
 
     virtual void _draw() override;
-    String get_display_content();
+    virtual String get_display_content();
 
     // Getter and Setter for the property
     void set_path(const String path);

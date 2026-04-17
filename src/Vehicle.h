@@ -51,7 +51,7 @@ public:
     String get_id();
     Radar* get_radar();
     uint16_t get_max_speed();
-    String get_display_content();
+    String get_display_content() override;
     uint16_t get_speed();
     float get_direction();
     uint8_t get_radar_cross_section();

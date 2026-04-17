@@ -61,7 +61,7 @@ void MapIcon::_draw() {
 
     // draw the text at the top right, 10 pixels to the right of the texture edge
     // and then 5 pixels down
-    draw_string(font, Vector2(x_offset + 10.0f, -y_offset + 5.0f), get_display_content());
+    draw_multiline_string(font, Vector2(x_offset + 10.0f, -y_offset + 5.0f), get_display_content());
 }
 
 String MapIcon::get_display_content(){
