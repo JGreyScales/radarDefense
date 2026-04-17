@@ -106,7 +106,6 @@ void MapIcon::set_y(float p_y) {
 
 void MapIcon::set_z(float p_z) {
     z = p_z;
-    set_z_index((int)z);
     queue_redraw();
 }
 

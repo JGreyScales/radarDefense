@@ -3,9 +3,14 @@
 
 #include "MapIcon.h"
 
+#include <godot_cpp/classes/area2d.hpp> 
+#include <godot_cpp/classes/collision_shape2d.hpp>
+#include <godot_cpp/classes/circle_shape2d.hpp>
+
 namespace godot {
 
     class Radar;
+    class GlobalManager;
     // note this is a partially virtual class
     // therefore it will not appear in godot menus
 class Vehicle : public MapIcon {
@@ -13,9 +18,13 @@ class Vehicle : public MapIcon {
 
 
 protected:
+    void Vehicle::_notification(int p_what);
     static void _bind_methods();
 
 private:
+    Area2D* hitbox;
+    CollisionShape2D* hitbox_shape;
+
     String id;
 
     // Pilot
@@ -31,12 +40,13 @@ private:
     uint8_t rwrDetection;
 
     Vector<Vehicle*> beingTrackedBy;
+    MapIcon* moveWaypoint;
 
 public:
     Vehicle();
     ~Vehicle();
 
-    static Vehicle* create_prototype(String id);
+    static Vehicle* create_prototype(String id, uint8_t pilotSkill);
 
     String get_id();
     Radar* get_radar();
@@ -49,7 +59,9 @@ public:
     uint8_t get_line_of_sight_detection();
     uint8_t get_rwr_detection();
     Vector<Vehicle*> get_being_tracked_by();
+    MapIcon* get_move_waypoint();
 
+    void set_id(String id);
     void set_radar(Radar* radar);
     void set_max_speed(const uint16_t p_max_speed);
     void set_speed(const uint16_t p_speed);
@@ -61,10 +73,11 @@ public:
     void set_being_tracked_by(const Vector<Vehicle*> p_tracked_by);
     void add_being_tracked_by(Vehicle* tracked_by);
     void remove_being_tracked_by(Vehicle* tracked_by);
+    void set_move_waypoint(MapIcon* waypoint);
 
     
-    virtual void tick() = 0;
-    virtual void move(MapIcon* target) = 0;
+    virtual void tick(float deltaTime) = 0;
+    virtual void move(MapIcon* target, float deltaTime) = 0;
     virtual void avoid_incoming() = 0;
     virtual void engage(Vehicle* target) = 0;
     virtual Vehicle* clone() = 0;

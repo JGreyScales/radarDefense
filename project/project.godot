@@ -15,6 +15,10 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="godot cpp template"
-run/main_scene="uid://dmypjro08eiaj"
+run/main_scene="res://map_scene.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+GlobalGlobalManager="*uid://38ma3b1tc4xl"

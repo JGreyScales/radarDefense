@@ -15,6 +15,8 @@ protected:
 
 public:
     Vehicle* select_best_target(TypedArray<Vehicle> possibleTargets);
+    Radar* clone();
+
 };
 
 }

@@ -13,6 +13,7 @@ using namespace godot;
 
 static GlobalManager* _global_manager = nullptr;
 HashMap<String, Vehicle*> GlobalManager::vehicleRegistry;
+HashMap<String, Radar*> GlobalManager::radarRegistry;
 
 void initialize_gdextension_types(ModuleInitializationLevel p_level)
 {
@@ -24,10 +25,12 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level)
 	GDREGISTER_ABSTRACT_CLASS(Radar);
 	GDREGISTER_CLASS(GlobalManager);
 	GDREGISTER_CLASS(SearchRadar);
+	GDREGISTER_CLASS(Driveable);
 
 	_global_manager = memnew(GlobalManager);
 
 	Engine::get_singleton()->register_singleton("GlobalManager", GlobalManager::get_singleton());
+	UtilityFunctions::randomize();
 }
 
 void uninitialize_gdextension_types(ModuleInitializationLevel p_level) {

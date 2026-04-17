@@ -22,14 +22,15 @@
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/window.hpp>
-
+#include <godot_cpp/classes/time.hpp>
 
 namespace godot {
     
 class Vehicle;
+class GlobalManager;
 
 struct TrackedFrame {
-    uint64_t frame;
+    double timestamp;
     Vehicle* target;
 };
 
@@ -37,9 +38,10 @@ class Radar : public Area2D {
     GDCLASS(Radar, Area2D)
 
 protected:
-    static void _bind_methods();
-
+    static void _bind_methods();    
+    void Radar::_notification(int p_what);
 private:
+
     String name;
     String id;
     bool offensive;
@@ -48,7 +50,7 @@ private:
     uint8_t maximumRange;
     uint8_t searchArea;
     uint8_t searchelevation;
-    uint8_t curX;
+    double curX;
     uint8_t scanChankSize;
     // flyable dataLinkChild
 
@@ -66,9 +68,12 @@ public:
 
     virtual void _draw() override;
 
-    void scan_chunk(Vehicle* parent);
+    static Radar* create_prototype(String id);
+
+
+    void scan_chunk(Vehicle* parent, double delta);
     void add_target_entry(Vehicle* target);
-    void remove_older_than(uint64_t expireryFrame, Vehicle* parent);
+    void remove_older_than(double expireryTime, Vehicle* parent);
     float calculate_detection_score(Vehicle* parent, Vehicle* target);
 
     // Vector<Vehicle> hitable_targets(Weapon selectedWeapon)
@@ -82,7 +87,7 @@ public:
     uint8_t get_maximum_range();
     uint8_t get_search_area();
     uint8_t get_search_elevation();
-    uint8_t get_cur_x();
+    double get_cur_x();
     uint8_t get_scan_chunk_size();
     uint8_t get_linger_time();
     std::deque<TrackedFrame>* get_target_history();
@@ -92,6 +97,7 @@ public:
 
 
 
+    void set_id(String id);
     void set_precision_factor(uint8_t newPF);
     void set_maximum_range(uint8_t newMR);
     void set_search_elevation(uint8_t newSE);
@@ -99,7 +105,7 @@ public:
     void set_name(String name);
     void set_offensive(bool newState);
     void set_has_at_least_one_viable_target(bool newState);
-    void set_cur_x(uint8_t newX);
+    void set_cur_x(double newX);
     void set_scan_chunk_size(uint8_t newSize);
     void set_search_area(uint8_t newSearchArea);
 
@@ -109,7 +115,7 @@ public:
     
 
     virtual Vehicle* select_best_target(TypedArray<Vehicle>) = 0;
-
+    virtual Radar* clone() = 0;
 
 };
 
