@@ -6,6 +6,10 @@
 #include <godot_cpp/classes/area2d.hpp> 
 #include <godot_cpp/classes/collision_shape2d.hpp>
 #include <godot_cpp/classes/circle_shape2d.hpp>
+#include <godot_cpp/classes/input_event_mouse_button.hpp>
+#include <godot_cpp/classes/viewport.hpp>
+#include <godot_cpp/variant/callable.hpp>
+
 
 namespace godot {
 
@@ -16,14 +20,15 @@ namespace godot {
 class Vehicle : public MapIcon {
     GDCLASS(Vehicle, MapIcon)
 
-
 protected:
     void Vehicle::_notification(int p_what);
     static void _bind_methods();
 
 private:
+    // godot systems
     Area2D* hitbox;
     CollisionShape2D* hitbox_shape;
+    bool isSelected;
 
     String id;
 
@@ -41,13 +46,20 @@ private:
 
     Vector<Vehicle*> beingTrackedBy;
     MapIcon* moveWaypoint;
+    
 
 public:
     Vehicle();
     ~Vehicle();
 
+    // godot
+    void _on_hitbox_input_event(godot::Node *viewport, godot::Ref<godot::InputEvent> event, int32_t shape_idx);
+    void select();
+    void deselect();
+
     static Vehicle* create_prototype(String id, uint8_t pilotSkill);
 
+    bool get_is_selected();
     String get_id();
     Radar* get_radar();
     uint16_t get_max_speed();
@@ -74,9 +86,9 @@ public:
     void add_being_tracked_by(Vehicle* tracked_by);
     void remove_being_tracked_by(Vehicle* tracked_by);
     void set_move_waypoint(MapIcon* waypoint);
-
     
     virtual void tick(float deltaTime) = 0;
+    virtual void UItick(float deltaTime) = 0;
     virtual void move(MapIcon* target, float deltaTime) = 0;
     virtual void avoid_incoming() = 0;
     virtual void engage(Vehicle* target) = 0;

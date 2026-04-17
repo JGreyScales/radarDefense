@@ -18,6 +18,7 @@ public:
     ~Driveable();
 
     void tick(float deltaTime);
+    void UItick(float deltaTime);
     void move(MapIcon* target, float deltaTime);
     void avoid_incoming();
     void engage(Vehicle* target);

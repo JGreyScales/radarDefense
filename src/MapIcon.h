@@ -8,7 +8,11 @@
 #include <godot_cpp/variant/utility_functions.hpp>
 #include <godot_cpp/classes/theme_db.hpp>
 #include <godot_cpp/classes/font.hpp>
-
+#include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/packed_scene.hpp>
+#include <godot_cpp/classes/control.hpp>
+#include <godot_cpp/classes/label.hpp>
+#include <godot_cpp/classes/node.hpp>
 
 namespace godot {
 
@@ -16,6 +20,7 @@ class MapIcon : public Sprite2D {
     GDCLASS(MapIcon, Sprite2D)
 
 private:
+
     String name;
     String iconPath;
 
@@ -23,8 +28,9 @@ private:
     float y;
     float z;
 
-protected:
+protected:   
     static void _bind_methods();
+    void _notification(int p_what);
 
 public:
     MapIcon();

@@ -5,6 +5,7 @@
 using namespace godot;
 
 void Vehicle::_notification(int p_what) {
+	MapIcon::_notification(p_what);
 	GlobalManager *gm = GlobalManager::get_singleton();
 
 	switch (p_what) {
@@ -24,6 +25,9 @@ void Vehicle::_notification(int p_what) {
 				hitbox->set_monitoring(false);
 				hitbox->set_monitorable(true);
 				hitbox->set_collision_layer(2);
+				hitbox->set_pickable(true);
+				hitbox->connect("input_event", Callable(this, "_on_hitbox_input_event"));
+
 				add_child(hitbox);
 
 				hitbox_shape = memnew(CollisionShape2D);
@@ -89,6 +93,7 @@ void godot::Vehicle::_bind_methods() {
 
 	// Factory Method
 	ClassDB::bind_static_method("Vehicle", D_METHOD("create_prototype", "id", "pilotSkill"), &Vehicle::create_prototype);
+	ClassDB::bind_method(D_METHOD("_on_hitbox_input_event", "viewport", "event", "shape_idx"), &Vehicle::_on_hitbox_input_event);
 }
 
 Vehicle::Vehicle() {
@@ -111,21 +116,39 @@ Vehicle::Vehicle() {
 Vehicle::~Vehicle() {
 }
 
+void godot::Vehicle::_on_hitbox_input_event(godot::Node *viewport, godot::Ref<godot::InputEvent> event, int32_t shape_idx) {
+    Ref<InputEventMouseButton> mouse_event = event;
+
+    if (mouse_event.is_valid() && mouse_event->is_pressed() && mouse_event->get_button_index() == MOUSE_BUTTON_LEFT) {
+        
+        get_viewport()->set_input_as_handled();
+
+        GlobalManager::get_singleton()->set_selected_vehicle(this);
+    }
+}
+
+void godot::Vehicle::select() {
+	this->isSelected = true;
+}
+
+void godot::Vehicle::deselect() {
+	this->isSelected = false;
+}
+
 Vehicle *Vehicle::create_prototype(String id, uint8_t pilotSkill) {
 	return GlobalManager::get_vehicle_from_id(id);
 }
 
 String Vehicle::get_display_content() {
 	String mapIconContent = MapIcon::get_display_content();
-	Radar *radar = this->get_radar();
-	if (radar) {
-		mapIconContent += "\nRadar: " + radar->get_name();
-	}
-
 	mapIconContent += "\nAltitude: " + String::num(this->get_z());
 	mapIconContent += "\nVelocity: " + String::num(this->get_speed());
 
 	return mapIconContent;
+}
+
+bool godot::Vehicle::get_is_selected() {
+	return this->isSelected;
 }
 
 String godot::Vehicle::get_id() {
