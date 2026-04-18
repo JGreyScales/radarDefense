@@ -143,7 +143,7 @@ void Radar::scan_chunk(Vehicle *parent, double delta) {
 		}
 
 		if (hit_as_radar) {
-			UtilityFunctions::print("Ignored radar-on-radar: ", hit_as_radar->get_name());
+			// UtilityFunctions::print("Ignored radar-on-radar: ", hit_as_radar->get_name());
 			continue;
 		}
 
@@ -188,7 +188,7 @@ void Radar::add_target_entry(Vehicle *target) {
 		return;
 	}
 
-	UtilityFunctions::print("adding new detection");
+	// UtilityFunctions::print("adding new detection");
 	history.push_back({ current_time, target });
 	p_map.insert(target);
 }
@@ -198,7 +198,7 @@ void Radar::remove_older_than(double expiry_time, Vehicle *parent) {
 	std::unordered_set<Vehicle *> *p_map = this->get_presence_map();
 
 	while (!history->empty() && history->front().timestamp < expiry_time) {
-		UtilityFunctions::print("removing old detection");
+		// UtilityFunctions::print("removing old detection");
 		history->front().target->remove_being_tracked_by(parent);
 		p_map->erase(history->front().target);
 		history->pop_front();

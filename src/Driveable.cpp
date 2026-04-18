@@ -38,43 +38,45 @@ void Driveable::UItick(float deltaTime) {
 }
 
 void Driveable::move(MapIcon *target, float deltaTime) {
-	if (!target) {
-		this->set_speed(0);
-		return;
-	}
+    if (!target) {
+        this->set_speed(0);
+        return;
+    }
 
-	float dx = target->get_x() - this->get_x();
-	float dy = target->get_y() - this->get_y();
+    Vector2 current_pos(this->get_x(), this->get_y());
+    Vector2 target_pos(target->get_x(), target->get_y());
+    
+    float distance = current_pos.distance_to(target_pos);
 
-	if (Math::abs(dx) < 2 && Math::abs(dy) < 2) {
-		this->set_speed(0);
-		return;
-	}
+    if (distance < 2.0f) {
+        this->set_speed(0);
+        target->queue_free(); 
+        this->set_move_waypoint(nullptr);
+        return;
+    }
 
-	float targetAngle = atan2(dy, dx) * (180.0f / 3.14f);
+    Vector2 direction_vec = (target_pos - current_pos).normalized();
+    float targetAngle = Math::rad_to_deg(direction_vec.angle());
 
-	float rotationStep = 60.0f * deltaTime;
+    float rotationStep = 120.0f * deltaTime;
+    float currentAngle = this->get_direction();
+    
+    float angleDiff = Math::fmod(targetAngle - currentAngle + 180.0f, 360.0f);
+    if (angleDiff < 0) angleDiff += 360.0f;
+    angleDiff -= 180.0f;
 
-	float angleDiff = targetAngle - this->get_direction();
-	while (angleDiff < -180)
-		angleDiff += 360;
-	while (angleDiff > 180)
-		angleDiff -= 360;
+    if (Math::abs(angleDiff) <= rotationStep) {
+        this->set_direction(targetAngle);
+    } else {
+        this->set_direction(currentAngle + (angleDiff > 0 ? 1 : -1) * rotationStep);
+    }
 
-	if (abs(angleDiff) <= rotationStep) {
-		this->set_direction(targetAngle);
-	} else {
-		float newDirection = this->get_direction() + (angleDiff > 0 ? 1 : -1) * rotationStep;
-		this->set_direction(newDirection);
-	}
-	float rad = this->get_direction() * (3.14f / 180.0f);
+    float rad = Math::deg_to_rad(this->get_direction());
+    Vector2 velocity = Vector2(Math::cos(rad), Math::sin(rad)) * this->get_max_speed();
 
-	float newX = this->get_x() + this->get_max_speed() * cos(rad) * deltaTime;
-	float newY = this->get_y() + this->get_max_speed() * sin(rad) * deltaTime;
-
-	this->set_x(newX);
-	this->set_y(newY);
-	this->set_speed(this->get_max_speed());
+    this->set_x(current_pos.x + velocity.x * deltaTime);
+    this->set_y(current_pos.y + velocity.y * deltaTime);
+    this->set_speed(this->get_max_speed());
 }
 
 void Driveable::avoid_incoming() {

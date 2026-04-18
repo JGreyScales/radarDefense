@@ -95,6 +95,26 @@ void godot::GlobalManager::_process(double delta) {
 	}
 }
 
+void godot::GlobalManager::_input(const Ref<InputEvent> &event) {
+    Ref<InputEventMouseButton> mouse_event = event;
+    Vector2 local_click_pos = get_local_mouse_position();
+
+    if (mouse_event.is_valid() && mouse_event->is_pressed() && 
+        mouse_event->get_button_index() == MOUSE_BUTTON_RIGHT) {
+        if (GlobalManager::selected_vehicle != nullptr) {
+            MapIcon *wayPoint = memnew(MapIcon);
+            
+			wayPoint->set_x(local_click_pos.x);
+			wayPoint->set_y(local_click_pos.y);
+
+			this->selected_vehicle->set_move_waypoint(wayPoint);
+			this->add_child(wayPoint);
+
+            UtilityFunctions::print("Created MapIcon at: ", local_click_pos, " for vehicle: ", selected_vehicle->get_name());
+        }
+    }
+}
+
 void GlobalManager::_notification(int p_what) {
 	if (p_what == Node::NOTIFICATION_READY) {
 		ResourceLoader *rl = ResourceLoader::get_singleton();

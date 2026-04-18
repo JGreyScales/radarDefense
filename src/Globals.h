@@ -44,6 +44,7 @@ public:
 
     void _physics_process(double delta) override;
     void _process(double delta) override;
+    void _input(const Ref<InputEvent> &event) override;
     void _notification(int p_what);
 
     void setup_initial_scene();

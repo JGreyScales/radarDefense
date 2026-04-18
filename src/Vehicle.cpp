@@ -252,7 +252,8 @@ void godot::Vehicle::remove_being_tracked_by(Vehicle *tracked_by) {
 }
 
 void godot::Vehicle::set_move_waypoint(MapIcon *waypoint) {
-	if (waypoint) {
-		this->moveWaypoint = waypoint;
+	if (this->moveWaypoint != nullptr && this->moveWaypoint != waypoint){
+		this->moveWaypoint->queue_free();
 	}
+	this->moveWaypoint = waypoint;
 }

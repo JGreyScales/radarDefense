@@ -48,6 +48,8 @@ MapIcon::MapIcon(String iconPath, String name) : MapIcon() {
 MapIcon::~MapIcon() {}
 
 void MapIcon::_draw() {
+	draw_set_transform(Vector2(0, 0), -get_global_rotation(), Vector2(1, 1));
+	
 	Ref<Font> font = ThemeDB::get_singleton()->get_fallback_font();
 	if (font.is_null())
 		return;
