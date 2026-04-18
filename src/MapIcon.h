@@ -15,6 +15,7 @@
 #include <godot_cpp/classes/node.hpp>
 
 namespace godot {
+class GlobalManager;
 
 class MapIcon : public Sprite2D {
     GDCLASS(MapIcon, Sprite2D)
@@ -39,6 +40,8 @@ public:
 
     virtual void _draw() override;
     virtual String get_display_content();
+
+    void force_redraw();
 
     // Getter and Setter for the property
     void set_path(const String path);

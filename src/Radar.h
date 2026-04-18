@@ -55,7 +55,7 @@ private:
     // flyable dataLinkChild
 
     // linger target stuff
-    uint8_t lingerTime;
+    float lingerTime;
     std::deque<TrackedFrame> targetHistory;
     std::unordered_set<Vehicle*> presenceMap;
 
@@ -89,7 +89,7 @@ public:
     uint8_t get_search_elevation();
     double get_cur_x();
     uint8_t get_scan_chunk_size();
-    uint8_t get_linger_time();
+    float get_linger_time();
     std::deque<TrackedFrame>* get_target_history();
     std::unordered_set<Vehicle*>* get_presence_map();
     PackedVector2Array get_radar_points();

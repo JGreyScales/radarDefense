@@ -6,6 +6,7 @@
 #include <godot_cpp/classes/area2d.hpp> 
 #include <godot_cpp/classes/collision_shape2d.hpp>
 #include <godot_cpp/classes/circle_shape2d.hpp>
+#include <godot_cpp/classes/rectangle_shape2d.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/viewport.hpp>
 #include <godot_cpp/variant/callable.hpp>

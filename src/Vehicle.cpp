@@ -33,10 +33,10 @@ void Vehicle::_notification(int p_what) {
 				hitbox_shape = memnew(CollisionShape2D);
 				hitbox->add_child(hitbox_shape);
 
-				Ref<CircleShape2D> circle;
-				circle.instantiate();
-				circle->set_radius(10.0);
-				hitbox_shape->set_shape(circle);
+				Ref<RectangleShape2D> rect;
+				rect.instantiate();
+				rect->set_size(Vector2(10, 10));
+				hitbox_shape->set_shape(rect);
 			}
 			break;
 	}

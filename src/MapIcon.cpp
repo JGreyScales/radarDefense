@@ -1,4 +1,5 @@
 #include "MapIcon.h"
+#include "Globals.h"
 
 using namespace godot;
 
@@ -48,6 +49,7 @@ MapIcon::MapIcon(String iconPath, String name) : MapIcon() {
 MapIcon::~MapIcon() {}
 
 void MapIcon::_draw() {
+	// icon should be the same size as the hitbox aka 10x10
 	draw_set_transform(Vector2(0, 0), -get_global_rotation(), Vector2(1, 1));
 	
 	Ref<Font> font = ThemeDB::get_singleton()->get_fallback_font();
@@ -67,6 +69,19 @@ void MapIcon::_draw() {
 		}
 	}
 
+	if (GlobalManager::get_selected_target_vehicle()){
+		UtilityFunctions::print(GlobalManager::get_selected_target_vehicle()->get_name());
+		UtilityFunctions::print(this->get_name());
+	}
+
+	if (this == GlobalManager::get_selected_target_vehicle()){
+		Rect2 selection_rect = Rect2(Vector2(-5.5f, -5.5f), Size2(11.0f, 11.0f));
+        Color orange = Color(1.0f, 0.5f, 0.0f);
+        
+        // draw_rect(rect, color, filled, width)
+        draw_rect(selection_rect, orange, false, 1.0f);
+	}
+
 	// draw the text at the top right, 10 pixels to the right of the texture edge
 	// and then 5 pixels down
 	draw_multiline_string(font, Vector2(x_offset + 10.0f, -y_offset + 5.0f), get_display_content());
@@ -80,15 +95,27 @@ String MapIcon::get_display_content() {
 	return "Name: " + this->get_name();
 }
 
+void godot::MapIcon::force_redraw() {
+	this->queue_redraw();
+}
+
 // Setters
 void MapIcon::set_path(const String path) {
-	this->iconPath = path;
-	if (!iconPath.is_empty()) {
-		Ref<Texture2D> texture = ResourceLoader::get_singleton()->load(iconPath);
-		if (texture.is_valid()) {
-			set_texture(texture);
-		}
-	}
+    this->iconPath = path;
+    if (!iconPath.is_empty()) {
+        Ref<Texture2D> texture = ResourceLoader::get_singleton()->load(iconPath);
+        if (texture.is_valid()) {
+            set_texture(texture);
+
+            Vector2 tex_size = texture->get_size();
+            
+            if (tex_size.x != 0 && tex_size.y != 0) {
+                Vector2 target_size = Vector2(10.0, 10.0);
+                Vector2 new_scale = target_size / tex_size;
+                set_scale(new_scale);
+            }
+        }
+    }
 }
 
 void MapIcon::set_name(const String name) {

@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://dcxs2mo6yfghm"]
+[gd_scene format=3 uid="uid://dfuo81nx6pvhc"]
 
 [node name="Control" type="Control" unique_id=1375753712]
 layout_mode = 3
@@ -36,4 +36,7 @@ layout_mode = 2
 text = "X,Y,Z:"
 
 [node name="xyzValue" type="Label" parent="PanelContainer/MarginContainer/GridContainer" unique_id=310298747]
+layout_mode = 2
+
+[node name="targetList" type="GridContainer" parent="PanelContainer/MarginContainer/GridContainer" unique_id=1211396441]
 layout_mode = 2

@@ -99,74 +99,109 @@ Radar *godot::Radar::create_prototype(String id) {
 }
 
 void Radar::scan_chunk(Vehicle *parent, double delta) {
-	if (!parent || !is_inside_tree())
-		return;
+    if (!parent || !is_inside_tree())
+        return;
 
-	float total_sweep_distance = (float)this->get_search_area() * 2.0f;
-	float degrees_per_second = total_sweep_distance / (float)this->get_linger_time();
+    // Calculate rotation and update linger time
+    float total_sweep_distance = (float)this->get_search_area() * 2.0f;
+    
+    // We assume a base rotation speed to calculate the dynamic linger time
+    // If you have a specific speed variable, use that instead of the hardcoded 60.0f
+    float degrees_per_second = 60.0f; 
+    float rotation_time = total_sweep_distance / degrees_per_second;
+    this->lingerTime = rotation_time + 0.05f;
 
-	float movement = degrees_per_second * (float)delta;
-	this->set_cur_x(this->get_cur_x() + movement);
+    float movement = degrees_per_second * (float)delta;
+    this->set_cur_x(this->get_cur_x() + movement);
 
-	if (this->get_cur_x() > (float)searchArea) {
-		this->set_cur_x(-(float)searchArea);
-	}
+    if (this->get_cur_x() > (float)searchArea) {
+        this->set_cur_x(-(float)searchArea);
+    }
 
-	this->clear_radar_points();
-	float angleSrc = parent->get_direction() + this->get_cur_x();
-	float angle_to = angleSrc + (float)this->get_scan_chunk_size();
+    // --- PHYSICAL DISTANCE CLEANUP ---
+    // Immediately drop targets that have moved beyond the radar's max range
+    std::deque<TrackedFrame> &history = *get_target_history();
+    std::unordered_set<Vehicle *> &p_map = *get_presence_map();
+    Vector3 parentPos = Vector3(parent->get_x(), parent->get_y(), parent->get_z());
+    float maxRange = (float)this->get_maximum_range();
 
-	// Draw the radar polygon
-	this->add_radar_point(Vector2(0, 0)); // Origin
-	int resolution = 8;
-	for (int i = 0; i <= resolution; i++) {
-		float angle = Math::deg_to_rad(angleSrc + (angle_to - angleSrc) * i / resolution);
-		this->add_radar_point(Vector2(Math::cos(angle), Math::sin(angle)) * this->get_maximum_range());
-	}
+    for (std::deque<TrackedFrame>::iterator it = history.begin(); it != history.end(); ) {
+        Vehicle* target = it->target;
+        bool should_remove = false;
 
-	queue_redraw();
-	this->set_radar_collision_polygon();
+        if (target == nullptr) {
+            should_remove = true;
+        } else {
+            Vector3 targetPos = Vector3(target->get_x(), target->get_y(), target->get_z());
+            if (parentPos.distance_to(targetPos) > maxRange) {
+                should_remove = true;
+            }
+        }
 
-	TypedArray<Area2D> overlapping = get_overlapping_areas();
+        if (should_remove) {
+            if (GlobalManager::get_selected_vehicle() == parent) {
+                GlobalManager::remove_target_from_list(target);
+            }
+            if (target != nullptr) {
+                target->remove_being_tracked_by(parent);
+                p_map.erase(target);
+            }
+            it = history.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    // --- END DISTANCE CLEANUP ---
 
-	for (int i = 0; i < overlapping.size(); i++) {
-		Area2D *hitbox = Object::cast_to<Area2D>(overlapping[i]);
+    this->clear_radar_points();
+    float angleSrc = parent->get_direction() + this->get_cur_x();
+    float angle_to = angleSrc + (float)this->get_scan_chunk_size();
 
-		if (!hitbox ) {
-			continue;
-		}
+    // Draw the radar polygon
+    this->add_radar_point(Vector2(0, 0)); // Origin
+    int resolution = 8;
+    for (int i = 0; i <= resolution; i++) {
+        float angle = Math::deg_to_rad(angleSrc + (angle_to - angleSrc) * i / resolution);
+        this->add_radar_point(Vector2(Math::cos(angle), Math::sin(angle)) * maxRange);
+    }
 
-		Radar *hit_as_radar = Object::cast_to<Radar>(hitbox);
+    queue_redraw();
+    this->set_radar_collision_polygon();
 
-		if (hit_as_radar == this){
-			continue;
-		}
+    TypedArray<Area2D> overlapping = get_overlapping_areas();
 
-		if (hit_as_radar) {
-			// UtilityFunctions::print("Ignored radar-on-radar: ", hit_as_radar->get_name());
-			continue;
-		}
+    for (int i = 0; i < overlapping.size(); i++) {
+        Area2D *hitbox = Object::cast_to<Area2D>(overlapping[i]);
 
-		Node *parent_node = hitbox->get_parent();
-		Vehicle *v = Object::cast_to<Vehicle>(parent_node);
+        if (!hitbox) {
+            continue;
+        }
 
+        Radar *hit_as_radar = Object::cast_to<Radar>(hitbox);
 
-		if (v && v != parent) {
-			float detectionScore = this->calculate_detection_score(parent, v);
-			if (detectionScore > 0.2f) {
-				this->add_target_entry(v);
-				v->add_being_tracked_by(parent);
-			} else if (detectionScore > 0.08f && (UtilityFunctions::randi() % 10) == 1) {
-				this->add_target_entry(v);
-				v->add_being_tracked_by(parent);
-			}
-		}
-	}
+        if (hit_as_radar == this || hit_as_radar != nullptr) {
+            continue;
+        }
 
-	double current_time = (double)Time::get_singleton()->get_ticks_msec() / 1000.0;
-	double expiry_threshold = current_time - (double)this->get_linger_time() + 1;
+        Node *parent_node = hitbox->get_parent();
+        Vehicle *v = Object::cast_to<Vehicle>(parent_node);
 
-	this->remove_older_than(expiry_threshold, parent);
+        if (v && v != parent) {
+            float detectionScore = this->calculate_detection_score(parent, v);
+            if (detectionScore > 0.2f) {
+                this->add_target_entry(v);
+                v->add_being_tracked_by(parent);
+            } else if (detectionScore > 0.08f && (UtilityFunctions::randi() % 10) == 1) {
+                this->add_target_entry(v);
+                v->add_being_tracked_by(parent);
+            }
+        }
+    }
+
+    double current_time = (double)Time::get_singleton()->get_ticks_msec() / 1000.0;
+    double expiry_threshold = current_time - (double)this->get_linger_time();
+
+    this->remove_older_than(expiry_threshold, parent);
 }
 
 void Radar::add_target_entry(Vehicle *target) {
@@ -189,20 +224,33 @@ void Radar::add_target_entry(Vehicle *target) {
 	}
 
 	// UtilityFunctions::print("adding new detection");
+	if (GlobalManager::get_selected_vehicle() == this->get_parent()){
+		GlobalManager::add_target_to_list(target);
+	}
 	history.push_back({ current_time, target });
 	p_map.insert(target);
 }
 
 void Radar::remove_older_than(double expiry_time, Vehicle *parent) {
-	std::deque<TrackedFrame> *history = this->get_target_history();
-	std::unordered_set<Vehicle *> *p_map = this->get_presence_map();
+    std::deque<TrackedFrame> *history = this->get_target_history();
+    std::unordered_set<Vehicle *> *p_map = this->get_presence_map();
 
-	while (!history->empty() && history->front().timestamp < expiry_time) {
-		// UtilityFunctions::print("removing old detection");
-		history->front().target->remove_being_tracked_by(parent);
-		p_map->erase(history->front().target);
-		history->pop_front();
-	}
+    while (!history->empty() && history->front().timestamp < expiry_time) {
+        UtilityFunctions::print("removing old detection");
+
+        Vehicle* expired_vehicle = history->front().target;
+		
+        if (GlobalManager::get_selected_vehicle() == parent) {
+            GlobalManager::remove_target_from_list(expired_vehicle);
+        }
+
+        if (expired_vehicle != nullptr) {
+            expired_vehicle->remove_being_tracked_by(parent);
+            p_map->erase(expired_vehicle);
+        }
+
+        history->pop_front();
+    }
 }
 
 float Radar::calculate_detection_score(Vehicle *parent, Vehicle *target) {
@@ -276,7 +324,7 @@ uint8_t godot::Radar::get_scan_chunk_size() {
 	return this->scanChankSize;
 }
 
-uint8_t godot::Radar::get_linger_time() {
+float godot::Radar::get_linger_time() {
 	return this->lingerTime;
 }
 

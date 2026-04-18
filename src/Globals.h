@@ -3,6 +3,7 @@
 
 #include "Driveable.h"
 #include "SearchRadar.h"
+#include "targetListButton.h"
 
 #include <godot_cpp/classes/node2d.hpp>
 #include <godot_cpp/classes/label.hpp>
@@ -11,6 +12,9 @@
 #include <godot_cpp/classes/input_event.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/vector.hpp>
+#include <godot_cpp/classes/grid_container.hpp>
+#include <godot_cpp/classes/button_group.hpp>
+
 
 namespace godot {
 
@@ -24,12 +28,16 @@ private:
     static Label* nameValue;
     static Label* xyzTitle;
     static Label* xyzValue;
+    static GridContainer* targetList;
+
+    static Ref<ButtonGroup> targetListGroup;
 
     static GlobalManager *singleton;
     static HashMap<String, Vehicle*> vehicleRegistry;
     static HashMap<String, Radar*> radarRegistry;
     static Vector<Vehicle*> activeVehicles;
     static Vehicle* selected_vehicle;
+    static Vehicle* selectedTargetVehicle;
 
     void register_vehicle_into_registry(Vehicle* vehicle);
     void register_radar_into_registry(Radar* radar);
@@ -46,6 +54,7 @@ public:
     void _process(double delta) override;
     void _input(const Ref<InputEvent> &event) override;
     void _notification(int p_what);
+    void _on_vehicle_selected(Vehicle* p_vehicle_obj);
 
     void setup_initial_scene();
     static GlobalManager *get_singleton();
@@ -59,9 +68,13 @@ public:
 
     static void set_selected_vehicle(Vehicle* p_vehicle);
     static Vehicle* get_selected_vehicle() { return selected_vehicle; }
+    static Vehicle* get_selected_target_vehicle() { return selectedTargetVehicle; }
 
     static void set_ui_name_value(String name);
     static void set_ui_xyz_value(String xyz);
+    static void add_target_to_list(Vehicle* target);
+    static void clear_target_list();
+    static void remove_target_from_list(Vehicle *target);
     static void resize_ui();
 };
 
