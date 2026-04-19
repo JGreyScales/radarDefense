@@ -40,3 +40,4 @@ layout_mode = 2
 
 [node name="targetList" type="GridContainer" parent="PanelContainer/MarginContainer/GridContainer" unique_id=1211396441]
 layout_mode = 2
+columns = 2
