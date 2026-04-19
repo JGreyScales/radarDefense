@@ -49,42 +49,43 @@ MapIcon::MapIcon(String iconPath, String name) : MapIcon() {
 MapIcon::~MapIcon() {}
 
 void MapIcon::_draw() {
-	// icon should be the same size as the hitbox aka 10x10
-	draw_set_transform(Vector2(0, 0), -get_global_rotation(), Vector2(1, 1));
-	
-	Ref<Font> font = ThemeDB::get_singleton()->get_fallback_font();
-	if (font.is_null())
-		return;
+    Vector2 s = get_scale();
+    Vector2 inv_scale = Vector2(1.0f / s.x, 1.0f / s.y);
 
-	float x_offset = 0.0f;
-	float y_offset = 0.0f;
-	Ref<Texture2D> tex = get_texture();
+    draw_set_transform(Vector2(0, 0), -get_global_rotation(), inv_scale);
+    
+    Ref<Font> font = ThemeDB::get_singleton()->get_fallback_font();
+    if (font.is_null())
+        return;
 
-	if (tex.is_valid()) {
-		if (is_centered()) {
-			x_offset = tex->get_width() / 2.0f;
-			y_offset = tex->get_height() / 2.0f;
-		} else {
-			x_offset = tex->get_width();
-		}
-	}
+    float x_offset = 0.0f;
+    float y_offset = 0.0f;
+    Ref<Texture2D> tex = get_texture();
 
-	if (GlobalManager::get_selected_target_vehicle()){
-		UtilityFunctions::print(GlobalManager::get_selected_target_vehicle()->get_name());
-		UtilityFunctions::print(this->get_name());
-	}
+    const float visual_width = 40.0f;
+    const float visual_height = (tex.is_valid() && tex->get_width() > 0) ? 
+                                (tex->get_height() * (visual_width / tex->get_width())) : 40.0f;
 
-	if (this == GlobalManager::get_selected_target_vehicle()){
-		Rect2 selection_rect = Rect2(Vector2(-5.5f, -5.5f), Size2(11.0f, 11.0f));
-        Color orange = Color(1.0f, 0.5f, 0.0f);
+    if (is_centered()) {
+        x_offset = visual_width / 2.0f;
+        y_offset = visual_height / 2.0f;
+    } else {
+        x_offset = visual_width;
+        y_offset = 0.0f;
+    }
+
+    if (this == GlobalManager::get_selected_target_vehicle()) {
+        float padding = 5.0f;
+        Rect2 selection_rect = Rect2(
+            Vector2(-x_offset - padding / 2.0f, -y_offset - padding / 2.0f), 
+            Size2(visual_width + padding, visual_height + padding)
+        );
         
-        // draw_rect(rect, color, filled, width)
-        draw_rect(selection_rect, orange, false, 1.0f);
-	}
+        Color orange = Color(1.0f, 0.5f, 0.0f);
+        draw_rect(selection_rect, orange, false, 1.5f);
+    }
 
-	// draw the text at the top right, 10 pixels to the right of the texture edge
-	// and then 5 pixels down
-	draw_multiline_string(font, Vector2(x_offset + 10.0f, -y_offset + 5.0f), get_display_content());
+    draw_multiline_string(font, Vector2(x_offset + 10.0f, -y_offset + 5.0f), get_display_content());
 }
 
 String MapIcon::get_display_content() {
@@ -102,18 +103,18 @@ void godot::MapIcon::force_redraw() {
 // Setters
 void MapIcon::set_path(const String path) {
     this->iconPath = path;
-    if (!iconPath.is_empty()) {
-        Ref<Texture2D> texture = ResourceLoader::get_singleton()->load(iconPath);
-        if (texture.is_valid()) {
-            set_texture(texture);
+    if (iconPath.is_empty()) return;
 
-            Vector2 tex_size = texture->get_size();
-            
-            if (tex_size.x != 0 && tex_size.y != 0) {
-                Vector2 target_size = Vector2(10.0, 10.0);
-                Vector2 new_scale = target_size / tex_size;
-                set_scale(new_scale);
-            }
+    Ref<Texture2D> texture = ResourceLoader::get_singleton()->load(iconPath);
+    if (texture.is_valid()) {
+        set_texture(texture);
+        Vector2 tex_size = texture->get_size();
+        float target_width = 40.0f;
+
+        if (tex_size.x > 0) {
+            this->currentScaleFactor = target_width / tex_size.x;
+            set_scale(Vector2(this->currentScaleFactor, this->currentScaleFactor));
+			this->set_flip_h(true);
         }
     }
 }

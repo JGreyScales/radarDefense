@@ -34,6 +34,9 @@ protected:
     void _notification(int p_what);
 
 public:
+
+    float currentScaleFactor;
+
     MapIcon();
     MapIcon(String path, String name);
     ~MapIcon();

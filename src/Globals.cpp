@@ -50,7 +50,7 @@ Driveable *createDemoRadarTruck() {
 
 	// driveable
 	demoTruck->set_name("Demo Truck");
-	demoTruck->set_path("");
+	demoTruck->set_path("res://icons/Pantsir-S2.svg");
 	demoTruck->set_id("demo_radar_truck");
 	demoTruck->set_radar(GlobalManager::get_radar_from_id("demo1_radar"));
 	demoTruck->set_max_speed(40);
@@ -67,7 +67,7 @@ Driveable *createDemoFrontRadarTruck() {
 
 	// driveable
 	demoTruck->set_name("Demo Front Truck");
-	demoTruck->set_path("");
+	demoTruck->set_path("res://icons/Pantsir-S2.svg");
 	demoTruck->set_id("demo_front_radar_truck");
 	demoTruck->set_radar(GlobalManager::get_radar_from_id("demo1_front_radar"));
 	demoTruck->set_max_speed(40);

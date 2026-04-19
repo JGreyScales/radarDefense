@@ -38,6 +38,17 @@ void Vehicle::_notification(int p_what) {
 				rect->set_size(Vector2(10, 10));
 				hitbox_shape->set_shape(rect);
 			}
+
+			if (this->currentScaleFactor != 1.0f) {
+                Vector2 inv_scale = Vector2(1.0f / this->currentScaleFactor, 1.0f / this->currentScaleFactor);
+                TypedArray<Node> children = get_children();
+                for (int i = 0; i < children.size(); i++) {
+                    Node2D *child_node = Object::cast_to<Node2D>(children[i]);
+                    if (child_node) {
+                        child_node->set_scale(inv_scale);
+                    }
+                }
+            }
 			break;
 	}
 }
