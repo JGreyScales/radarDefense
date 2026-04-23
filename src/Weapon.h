@@ -15,12 +15,15 @@ private:
     uint8_t capacity;
     String name;
     String id;
-    uint8_t dropweight();
+    uint8_t dropweight;
+    int maximumRange;
+    int effectiveRange;
+
 public:
-    Weapon(/* args */);
+    Weapon(String id);
     ~Weapon();
 
-    Flyable* deploy(Vehicle* parent, Vehicle* target);
+    Flyable* deploy(void* parent, void* target);
     String getName();
     String getID();
     uint8_t getDropWeight();
@@ -29,6 +32,12 @@ public:
     void setName(String name);
     void setID(String id);
     void setDropWeight(uint8_t dropWeight);
+
+    int calculateMaximumRange(int verticalZOffset);
+    int calculateEffectiveRange(int verticalZOffset);
+
+    int getMaximumRange(int verticalZOffset);
+    int getEffectiveRange(int verticalZOffset);
 };
 
 

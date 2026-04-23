@@ -9,12 +9,14 @@ class HardPoint
 private:
     Weapon* equippedWapon;
     Vector<Weapon*> options;
+
+public:
+    HardPoint();
+    ~HardPoint();
+
     Vector<String> getWeaponOptionNames();
     Weapon* getEquippedWeapon();
     void setEquippedWeapon(Weapon*);
     
-public:
-    HardPoint(/* args */);
-    ~HardPoint();
 };
 #endif
