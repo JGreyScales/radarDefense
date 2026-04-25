@@ -1,8 +1,7 @@
 #ifndef WEAPON_H
 #define WEAPON_H
 
-class Flyable;
-class Vehicle;
+#include "Flyable.h"
 
 #include <godot_cpp/classes/sprite2d.hpp>
 #include <godot_cpp/core/class_db.hpp>
@@ -33,11 +32,9 @@ public:
     void setID(String id);
     void setDropWeight(uint8_t dropWeight);
 
-    int calculateMaximumRange(int verticalZOffset);
-    int calculateEffectiveRange(int verticalZOffset);
 
-    int getMaximumRange(int verticalZOffset);
-    int getEffectiveRange(int verticalZOffset);
+    int getMaximumRange(Flyable* self);
+    int getEffectiveRange(Flyable* self);;
 };
 
 

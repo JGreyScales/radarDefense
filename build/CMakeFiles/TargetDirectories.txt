@@ -1,0 +1,4 @@
+D:/Programming/radarDefense/build/CMakeFiles/generate_bindings.dir
+D:/Programming/radarDefense/build/CMakeFiles/godot-cpp.dir
+D:/Programming/radarDefense/build/CMakeFiles/edit_cache.dir
+D:/Programming/radarDefense/build/CMakeFiles/rebuild_cache.dir

@@ -40,20 +40,10 @@ void Weapon::setDropWeight(uint8_t dropWeight) {
     this->dropweight = dropweight;
 }
 
-int Weapon::calculateMaximumRange(int verticalZOffset) {
-	return 0;
+int Weapon::getMaximumRange(Flyable *self) {
+	return self->calculateMaximumRange();
 }
 
-int Weapon::calculateEffectiveRange(int verticalZOffset) {
-	return 0;
-}
-
-int Weapon::getMaximumRange(int verticalZOffset) {
-    this->calculateMaximumRange(verticalZOffset);
-	return this->maximumRange;
-}
-
-int Weapon::getEffectiveRange(int verticalZOffset) {
-    this->calculateEffectiveRange(verticalZOffset);
-	return this->effectiveRange;
+int Weapon::getEffectiveRange(Flyable *self) {
+	return self->calculateMaximumEffectiveRange();
 }
