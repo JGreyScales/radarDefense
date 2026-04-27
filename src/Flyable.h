@@ -1,8 +1,11 @@
 #include "Vehicle.h"
 
 
-#define JET_FUEL_WEIGHT_PER_L_LBS = 1.81;
-#define SOLIDE_STATE_WEIGHT_PER_L_LBS = 0.65;
+#define JET_FUEL_WEIGHT_PER_L_LBS 1.81;
+#define SOLIDE_STATE_WEIGHT_PER_L_LBS 0.65;
+
+#include <godot_cpp/core/math.hpp>
+
 
 using namespace godot;
 class Flyable : public Vehicle
@@ -12,7 +15,7 @@ private:
     uint8_t maximumAltitude;
     float elevation;
 
-    uint8_t fuelTime;
+    float fuelTime;
     float fuelWeightPerL;
     uint16_t weight;
     

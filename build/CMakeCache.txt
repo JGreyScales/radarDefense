@@ -408,6 +408,8 @@ _Python3_EXECUTABLE_DEBUG:INTERNAL=_Python3_EXECUTABLE_DEBUG-NOTFOUND
 //Python3 Properties
 _Python3_INTERPRETER_PROPERTIES:INTERNAL=Python;3;14;3;64;<none>;cp314-win_amd64.pyd;;C:\Users\localUser\AppData\Local\Python\pythoncore-3.14-64\Lib;C:\Users\localUser\AppData\Local\Python\pythoncore-3.14-64\Lib;C:\Users\localUser\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages;C:\Users\localUser\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages
 _Python3_INTERPRETER_SIGNATURE:INTERNAL=ddfa27c7c02e2c7e629bbe40403b437e
+//Interpreter reason failure
+_Python3_Interpreter_REASON_FAILURE:INTERNAL=
 //NumPy reason failure
 _Python3_NumPy_REASON_FAILURE:INTERNAL=
 
