@@ -24,6 +24,10 @@ private:
 
     String name;
     String iconPath;
+    uint16_t speed;
+    float direction;
+    float pitch;
+
 
     float x;
     float y;
@@ -52,12 +56,19 @@ public:
     void set_x(float x);
     void set_y(float y);
     void set_z(float z);
+    void set_speed(const uint16_t p_speed);
+    void set_direction(const float p_direction);
+    void set_pitch(float newPitch);
 
+    float get_pitch();
     String get_path();
     String get_name();
     float get_x();
     float get_y();
     float get_z();
+    uint16_t get_speed();
+    float get_direction();
+
 };
 
 }

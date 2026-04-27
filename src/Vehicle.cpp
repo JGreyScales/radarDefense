@@ -116,8 +116,6 @@ Vehicle::Vehicle() {
 	this->moveWaypoint = nullptr;
 
 	this->maxSpeed = 0;
-	this->speed = 0;
-	this->direction = 0.0f;
 	this->radarCrossSection = 0;
 	this->irSignature = 0;
 	this->lineOfSightDetection = 0;
@@ -174,13 +172,8 @@ uint16_t godot::Vehicle::get_max_speed() {
 	return this->maxSpeed;
 }
 
-uint16_t godot::Vehicle::get_speed() {
-	return this->speed;
-}
 
-float godot::Vehicle::get_direction() {
-	return this->direction;
-}
+
 
 uint8_t godot::Vehicle::get_radar_cross_section() {
 	return this->radarCrossSection;
@@ -219,15 +212,6 @@ void godot::Vehicle::set_max_speed(const uint16_t p_max_speed) {
 	this->maxSpeed = p_max_speed;
 }
 
-void godot::Vehicle::set_speed(const uint16_t p_speed) {
-	this->speed = p_speed;
-	queue_redraw();
-}
-
-void godot::Vehicle::set_direction(const float p_direction) {
-	set_rotation_degrees(p_direction);
-	this->direction = p_direction;
-}
 
 void godot::Vehicle::set_radar_cross_section(const uint8_t p_rcs) {
 	this->radarCrossSection = p_rcs;

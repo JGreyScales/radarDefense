@@ -145,9 +145,35 @@ void MapIcon::set_z(float p_z) {
 	queue_redraw();
 }
 
+void godot::MapIcon::set_speed(const uint16_t p_speed) {
+	this->speed = p_speed;
+	queue_redraw();
+}
+
+void godot::MapIcon::set_direction(const float p_direction) {
+	set_rotation_degrees(p_direction);
+	this->direction = p_direction;
+}
+
 // Getters
 String MapIcon::get_path() { return iconPath; }
 String MapIcon::get_name() { return name; }
 float MapIcon::get_x() { return x; }
 float MapIcon::get_y() { return y; }
 float MapIcon::get_z() { return z; }
+
+uint16_t godot::MapIcon::get_speed() {
+	return this->speed;
+}
+
+float godot::MapIcon::get_direction() {
+	return this->direction;
+}
+
+void godot::MapIcon::set_pitch(float newPitch) {
+    this->pitch = newPitch;
+}
+
+float godot::MapIcon::get_pitch() {
+	return this->pitch;
+}

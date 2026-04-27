@@ -19,8 +19,9 @@ void Flyable::tick(float deltaTime) {
     float currentSpeed = get_speed();
     bool hasFuel = fuelTime > 0;
 
-    if (hasFuel && this->get_move_waypoint() != nullptr) {
-        calculateOptimalFlightPath(this->get_move_waypoint(), deltaTime);
+    if (this->get_move_waypoint() != nullptr) {
+        this->calculateCollisionCourseMarker();
+        calculateOptimalFlightPath(this->interceptionTarget, deltaTime);
     }
 
     float altitudePenalty = 1.0f;
@@ -80,12 +81,20 @@ void Flyable::UItick(float deltaTime) {
 	GlobalManager::set_ui_xyz_value("X:" + godot::String::num((int)this->get_x()) + " Y:" + godot::String::num((int)this->get_y()) + " Z:" + godot::String::num((int)this->get_z()));
 }
 
-void Flyable::set_pitch(float newPitch) {
-    this->pitch = newPitch;
-}
+Vector3 Flyable::getTargetVelocityVector(MapIcon* target) {
+    if (!target) return Vector3(0, 0, 0);
 
-float Flyable::get_pitch() {
-	return this->pitch;
+    float speed = (float)target->get_speed();
+    float yaw = Math::deg_to_rad((float)target->get_direction());
+    float pitch = Math::deg_to_rad((float)target->get_pitch());
+
+    float horizontalComp = speed * Math::cos(pitch);
+
+    float vx = horizontalComp * Math::cos(yaw);
+    float vy = horizontalComp * Math::sin(yaw);
+    float vz = speed * Math::sin(pitch);
+
+    return Vector3(vx, vy, vz);
 }
 
 uint8_t Flyable::calculateMaximumRange() {
@@ -220,7 +229,42 @@ float Flyable::calculateOptimalFlightPath(MapIcon* target, float deltaTime) {
     float totalError = Math::sqrt(yawError * yawError + pitchError * pitchError);
     float alignment = Math::clamp((float)(1.0f - (totalError / (float)Math_PI)), 0.0f, 1.0f);
 
-    engineThrustOutput = this->calculateImpulseAcceleration(this->weight, this->thrustDelta) + (thrustDelta * alignment);
-
     return totalError; 
+}
+
+void Flyable::calculateCollisionCourseMarker() {
+    if (!this->interceptionTarget){
+        this->interceptionTarget = new MapIcon();
+    }
+
+	if (!this->get_move_waypoint()){
+        return;
+    }
+
+    MapIcon* target = this->get_move_waypoint();
+    
+    Vector3 targetPos = Vector3(target->get_x(), target->get_y(), target->get_z());
+    Vector3 myPos = Vector3(get_x(), get_y(), get_z());
+    
+    Vector3 targetVel = getTargetVelocityVector(target);
+    Vector3 myVel = getTargetVelocityVector(this);
+
+    Vector3 deltaPos = targetPos - myPos;
+    float distance = deltaPos.length();
+
+    Vector3 relVel = myVel - targetVel;
+    float Vc = relVel.dot(deltaPos.normalized());
+
+    float tti = distance / (Math::max(Vc, 0.1f));
+
+    tti = Math::clamp(tti, 0.0f, 10.0f);
+
+    Vector3 leadPoint = targetPos + (targetVel * tti);
+
+
+    float gravityDrop = 0.5f * 9.81f * (tti * tti);
+    
+    this->interceptionTarget->set_x(leadPoint.x);
+    this->interceptionTarget->set_y(leadPoint.y);
+    this->interceptionTarget->set_z(leadPoint.z + gravityDrop);
 }

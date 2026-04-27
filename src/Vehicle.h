@@ -38,8 +38,6 @@ private:
     // Loadout
 
     uint16_t maxSpeed;
-    uint16_t speed;
-    float direction;
     uint8_t radarCrossSection;
     uint8_t irSignature;
     uint8_t lineOfSightDetection;
@@ -65,8 +63,6 @@ public:
     Radar* get_radar();
     uint16_t get_max_speed();
     String get_display_content() override;
-    uint16_t get_speed();
-    float get_direction();
     uint8_t get_radar_cross_section();
     uint8_t get_ir_signature();
     uint8_t get_line_of_sight_detection();
@@ -77,8 +73,6 @@ public:
     void set_id(String id);
     void set_radar(Radar* radar);
     void set_max_speed(const uint16_t p_max_speed);
-    void set_speed(const uint16_t p_speed);
-    void set_direction(const float p_direction);
     void set_radar_cross_section(const uint8_t p_rcs);
     void set_ir_signature(const uint8_t p_ir);
     void set_line_of_sight_detection(const uint8_t p_los);

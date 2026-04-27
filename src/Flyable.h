@@ -43,10 +43,11 @@ private:
     float prevPitchError;
     float pitchIntegral;
 
-    float pitch;
 
     uint8_t chaffCount;
     uint8_t flareCount;
+
+    MapIcon* interceptionTarget;
 
 public:
     Flyable();
@@ -57,6 +58,7 @@ public:
 
     float calculateImpulseAcceleration(float mass, float thrust);
     float Flyable::calculateOptimalFlightPath(MapIcon* target, float deltaTime);
+    void calculateCollisionCourseMarker();
     
 
     void tick(float deltaTime);
@@ -66,10 +68,9 @@ public:
     void engage(Vehicle* target);
     Flyable* clone();
 
+    Vector3 Flyable::getTargetVelocityVector(MapIcon* target);
 
-    void set_pitch(float newPitch);
 
-    float get_pitch();
 };
 
 
