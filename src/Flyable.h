@@ -29,6 +29,22 @@ private:
     float thrustDelta;
     float engineThrustOutput;
 
+    float PID_prop_term;
+    float PID_int_term;
+    float PID_int_term_limit;
+    float PID_der_term;
+    float integralErrorSum;
+
+    // Yaw PID state
+    float prevYawError;
+    float yawIntegral;
+
+    // Pitch PID state
+    float prevPitchError;
+    float pitchIntegral;
+
+    float pitch;
+
     uint8_t chaffCount;
     uint8_t flareCount;
 
@@ -40,7 +56,7 @@ public:
     uint8_t calculateMaximumEffectiveRange();
 
     float calculateImpulseAcceleration(float mass, float thrust);
-    float calculateOptimalFlightPath(MapIcon* target);
+    float Flyable::calculateOptimalFlightPath(MapIcon* target, float deltaTime);
     
 
     void tick(float deltaTime);
@@ -49,4 +65,11 @@ public:
     void avoidIncoming();
     void engage(Vehicle* target);
     Flyable* clone();
+
+
+    void set_pitch(float newPitch);
+
+    float get_pitch();
 };
+
+
