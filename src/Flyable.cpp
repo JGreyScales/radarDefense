@@ -4,12 +4,6 @@
 using namespace godot;
 
 Flyable::Flyable() {
-    fuelTime = 255;
-    weight = 5000;
-    engineThrustOutput = 150000.0f;
-    maximumAltitude = 100;
-    optimalTurnSpeed = 150;
-    liftCoefficent = 10;
 }
 
 Flyable::~Flyable() {}
@@ -49,6 +43,9 @@ void Flyable::tick(float deltaTime) {
             currentSpeed += acceleration * deltaTime;
             if (currentSpeed > effectiveMaxSpeed) currentSpeed = effectiveMaxSpeed;
         }
+
+        float fuelConsumption = this->fuelFlowRateL * deltaTime;
+        this->weight -= fuelConsumption * this->fuelWeightPerL;
         fuelTime -= deltaTime; 
     } else {
         if (currentSpeed > 0.0f) {
@@ -85,6 +82,13 @@ void Flyable::tick(float deltaTime) {
     set_x(pos.x);
     set_y(pos.y);
     set_z(pos.z);
+
+    if (this->despawnIfCantHitTarget){
+        this->timeToDestruction -= deltaTime;
+        if (this->timeToDestruction < 0){
+            memdelete(this);
+        }
+    }
 }
 
 void Flyable::UItick(float deltaTime) {
@@ -92,8 +96,39 @@ void Flyable::UItick(float deltaTime) {
 	GlobalManager::set_ui_xyz_value("X:" + godot::String::num((int)this->get_x()) + " Y:" + godot::String::num((int)this->get_y()) + " Z:" + godot::String::num((int)this->get_z()));
 }
 
-Vector3 Flyable::getTargetVelocityVector(MapIcon* target) {
-    if (!target) return Vector3(0, 0, 0);
+void Flyable::move(MapIcon *target, float deltaTime) {
+}
+
+void Flyable::avoid_incoming() {
+}
+
+void Flyable::engage(Vehicle *target) {
+}
+
+Flyable *Flyable::clone() {
+	Flyable* returnValue = memnew(Flyable);
+
+	// map icon
+	returnValue->set_name(this->get_name());
+	returnValue->set_path(this->get_path());
+
+	// vehicle
+	returnValue->set_id(this->get_id());
+	returnValue->set_radar(Radar::create_prototype(this->get_radar()->get_id()));
+	returnValue->set_max_speed(this->get_max_speed());
+	returnValue->set_radar_cross_section(this->get_radar_cross_section());
+	returnValue->set_ir_signature(this->get_ir_signature());
+	returnValue->set_line_of_sight_detection(this->get_line_of_sight_detection());
+	returnValue->set_rwr_detection(this->get_rwr_detection());
+
+    //flyable
+
+
+	return nullptr;
+}
+
+Vector3 Flyable::getTargetVelocityVector(MapIcon *target) {
+	if (!target) return Vector3(0, 0, 0);
 
     float speed = (float)target->get_speed();
     float yaw = Math::deg_to_rad((float)target->get_direction());
