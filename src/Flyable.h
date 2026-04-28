@@ -57,7 +57,7 @@ public:
     uint8_t calculateMaximumEffectiveRange();
 
     float calculateImpulseAcceleration(float mass, float thrust);
-    float Flyable::calculateOptimalFlightPath(MapIcon* target, float deltaTime);
+    Vector2 Flyable::calculateOptimalFlightPath(MapIcon* target, float deltaTime);
     void calculateCollisionCourseMarker();
     
 

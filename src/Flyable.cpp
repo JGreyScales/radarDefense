@@ -15,65 +15,76 @@ Flyable::Flyable() {
 Flyable::~Flyable() {}
 
 void Flyable::tick(float deltaTime) {
-    elevation = get_z();
-    float currentSpeed = get_speed();
+    if (deltaTime <= 0.0f) return;
+
+    // 1. STATE SYNC
+    float currentSpeed = (float)get_speed();
+    float currentYawRad = Math::deg_to_rad(get_direction());
+    float currentPitchRad = Math::deg_to_rad(get_pitch());
+    Vector3 pos = Vector3(get_x(), get_y(), get_z());
     bool hasFuel = fuelTime > 0;
 
+    // 2. ROTATION AUTHORITY (PID Suggestion)
     if (this->get_move_waypoint() != nullptr) {
         this->calculateCollisionCourseMarker();
-        calculateOptimalFlightPath(this->interceptionTarget, deltaTime);
+        Vector2 angleDeltas = calculateOptimalFlightPath(this->interceptionTarget, deltaTime);
+        
+        currentYawRad += angleDeltas.x;
+        currentPitchRad += angleDeltas.y;
+
+        set_direction(Math::rad_to_deg(currentYawRad));
+        set_pitch(Math::rad_to_deg(currentPitchRad));
     }
 
     float altitudePenalty = 1.0f;
     if (maximumAltitude > 0) {
-        float altitudeRatio = Math::clamp(elevation / (float)maximumAltitude, 0.0f, 1.0f);
-        altitudePenalty = 1.0f - (altitudeRatio * 0.4f);
+        float altitudeRatio = Math::clamp(pos.z / (float)maximumAltitude, 0.0f, 1.0f);
+        altitudePenalty = 1.0f - (altitudeRatio * 0.4f); // Power drops at height
     }
     float effectiveMaxSpeed = get_max_speed() * altitudePenalty;
 
     if (hasFuel) {
         float acceleration = calculateImpulseAcceleration((float)weight, engineThrustOutput);
-        
         if (currentSpeed < effectiveMaxSpeed) {
             currentSpeed += acceleration * deltaTime;
             if (currentSpeed > effectiveMaxSpeed) currentSpeed = effectiveMaxSpeed;
         }
         fuelTime -= deltaTime; 
-
-    } else if (elevation > 0.0f) {
+    } else {
         if (currentSpeed > 0.0f) {
             currentSpeed -= 9.81f * deltaTime; 
             if (currentSpeed < 0.0f) currentSpeed = 0.0f;
         }
-
-        if (currentSpeed <= (float)optimalTurnSpeed) {
-            float safeLiftCoef = liftCoefficent > 0.0f ? (float)liftCoefficent : 1.0f;
-            float descentRate = 50.0f / safeLiftCoef;
-            elevation -= descentRate * deltaTime;
-        } 
-    } else {
-        currentSpeed = 0.0f;
     }
-
     set_speed((uint16_t)currentSpeed);
 
-    float radYaw = Math::deg_to_rad(get_direction());
-    float radPitch = Math::deg_to_rad(get_pitch());
+    // 4. TRANSLATION (XYZ Authority)
+    float cosPitch = Math::cos(currentPitchRad);
+    Vector3 velocity;
+    velocity.x = currentSpeed * cosPitch * Math::cos(currentYawRad);
+    velocity.y = currentSpeed * cosPitch * Math::sin(currentYawRad);
+    velocity.z = currentSpeed * Math::sin(currentPitchRad);
 
-    
-    float horizontalComp = currentSpeed * Math::cos(radPitch);
-    
-    float dx = horizontalComp * Math::cos(radYaw) * deltaTime;
-    float dy = horizontalComp * Math::sin(radYaw) * deltaTime;
-    float dz = currentSpeed * Math::sin(radPitch) * deltaTime;
+    // 5. AERODYNAMICS (Stall/Lift Logic)
+    if (pos.z > 0.0f && currentSpeed <= (float)optimalTurnSpeed) {
+        float safeLiftCoef = liftCoefficent > 0.0f ? (float)liftCoefficent : 1.0f;
+        float liftDeficit = 1.0f - (currentSpeed / (float)optimalTurnSpeed);
+        float descentRate = (50.0f / safeLiftCoef) * liftDeficit;
+        
+        velocity.z -= descentRate;
+    }
 
-    // Apply the position changes
-    set_x(get_x() + dx);
-    set_y(get_y() + dy);
-    
-    elevation += dz;
-    if (elevation < 0.0f) elevation = 0.0f;
-    set_z(elevation);
+    // 6. FINAL POSITION UPDATE
+    pos += velocity * deltaTime;
+
+    if (pos.z < 0.0f) {
+        pos.z = 0.0f;
+        if (!hasFuel) currentSpeed = 0.0f;
+    }
+
+    set_x(pos.x);
+    set_y(pos.y);
+    set_z(pos.z);
 }
 
 void Flyable::UItick(float deltaTime) {
@@ -166,35 +177,33 @@ float Flyable::calculateImpulseAcceleration(float mass, float thrust) {
     return thrust / mass; 
 }
 
-float Flyable::calculateOptimalFlightPath(MapIcon* target, float deltaTime) {
-    if (!target || deltaTime <= 0.0f) return 0.0f;
+Vector2 Flyable::calculateOptimalFlightPath(MapIcon* target, float deltaTime) {
+    if (!target || deltaTime <= 0.0f) return Vector2(0, 0);
 
     float currentSpeed = (float)get_speed();
-    
-    float turnAuthority = 1.0f;
     float optSpeed = (float)optimalTurnSpeed;
 
+    // --- Turn Authority Logic ---
+    float turnAuthority = 1.0f;
     if (optSpeed > 0.0f) {
         if (currentSpeed < optSpeed) {
             turnAuthority = currentSpeed / optSpeed;
         } else {
             float overspeedRatio = currentSpeed / optSpeed;
-            turnAuthority = 1.0f / overspeedRatio; 
+            turnAuthority = 1.0f / overspeedRatio;
         }
     }
-
     turnAuthority = Math::clamp(turnAuthority, 0.1f, 1.0f);
-    float effectiveTurnRate = (float)turnRate * turnAuthority;
-    float maxTurnStep = Math::deg_to_rad(effectiveTurnRate) * deltaTime;
+    float maxTurnStep = Math::deg_to_rad((float)turnRate * turnAuthority) * deltaTime;
 
+    // --- Error Calculation ---
     float dx = target->get_x() - get_x();
     float dy = target->get_y() - get_y();
     float dz = target->get_z() - get_z();
-
     float groundDist = Math::sqrt(dx * dx + dy * dy);
 
     float desiredYaw = Math::atan2(dy, dx); 
-    float desiredPitch = Math::atan2(dz, groundDist);
+    float desiredPitch = Math::atan2(dz, Math::max(groundDist, 0.01f));
 
     float currentYaw = Math::deg_to_rad(get_direction());
     float currentPitch = Math::deg_to_rad(get_pitch());
@@ -205,31 +214,23 @@ float Flyable::calculateOptimalFlightPath(MapIcon* target, float deltaTime) {
 
     float pitchError = desiredPitch - currentPitch;
 
-    
-    // YAW PID
+    // YAW
     yawIntegral = Math::clamp(yawIntegral + (yawError * deltaTime), -PID_int_term_limit, PID_int_term_limit);
     float yawDeriv = (yawError - prevYawError) / deltaTime;
     float yawOutput = (PID_prop_term * yawError) + (PID_int_term * yawIntegral) + (PID_der_term * yawDeriv);
     prevYawError = yawError;
 
-    // PITCH PID
+    // PITCH
     pitchIntegral = Math::clamp(pitchIntegral + (pitchError * deltaTime), -PID_int_term_limit, PID_int_term_limit);
     float pitchDeriv = (pitchError - prevPitchError) / deltaTime;
-    float pitchOutput = (PID_prop_term) + (PID_int_term * pitchIntegral) + (PID_der_term * pitchDeriv);
+    float pitchOutput = (PID_prop_term * pitchError) + (PID_int_term * pitchIntegral) + (PID_der_term * pitchDeriv);
     prevPitchError = pitchError;
 
-    float maxTurn = Math::deg_to_rad((float)turnRate) * deltaTime;
+    // Clamp the PID outputs to the physical limits of the airframe
+    float clampedYawDelta = Math::clamp(yawOutput, -maxTurnStep, maxTurnStep);
+    float clampedPitchDelta = Math::clamp(pitchOutput, -maxTurnStep, maxTurnStep);
 
-    float finalYaw = currentYaw + Math::clamp(yawOutput, -maxTurnStep, maxTurnStep);
-    set_direction(Math::rad_to_deg(finalYaw));
-
-    float finalPitch = currentPitch + Math::clamp(pitchOutput, -maxTurnStep, maxTurnStep);
-    set_pitch(Math::rad_to_deg(finalPitch));
-
-    float totalError = Math::sqrt(yawError * yawError + pitchError * pitchError);
-    float alignment = Math::clamp((float)(1.0f - (totalError / (float)Math_PI)), 0.0f, 1.0f);
-
-    return totalError; 
+    return Vector2(clampedYawDelta, clampedPitchDelta);
 }
 
 void Flyable::calculateCollisionCourseMarker() {
