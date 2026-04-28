@@ -17,14 +17,14 @@ Flyable::~Flyable() {}
 void Flyable::tick(float deltaTime) {
     if (deltaTime <= 0.0f) return;
 
-    // 1. STATE SYNC
+    // STATE SYNC
     float currentSpeed = (float)get_speed();
     float currentYawRad = Math::deg_to_rad(get_direction());
     float currentPitchRad = Math::deg_to_rad(get_pitch());
     Vector3 pos = Vector3(get_x(), get_y(), get_z());
     bool hasFuel = fuelTime > 0;
 
-    // 2. ROTATION AUTHORITY (PID Suggestion)
+    // ROTATION AUTHORITY (PID Suggestion)
     if (this->get_move_waypoint() != nullptr) {
         this->calculateCollisionCourseMarker();
         Vector2 angleDeltas = calculateOptimalFlightPath(this->interceptionTarget, deltaTime);
@@ -58,14 +58,14 @@ void Flyable::tick(float deltaTime) {
     }
     set_speed((uint16_t)currentSpeed);
 
-    // 4. TRANSLATION (XYZ Authority)
+    // TRANSLATION (XYZ Authority)
     float cosPitch = Math::cos(currentPitchRad);
     Vector3 velocity;
     velocity.x = currentSpeed * cosPitch * Math::cos(currentYawRad);
     velocity.y = currentSpeed * cosPitch * Math::sin(currentYawRad);
     velocity.z = currentSpeed * Math::sin(currentPitchRad);
 
-    // 5. AERODYNAMICS (Stall/Lift Logic)
+    // AERODYNAMICS (Stall/Lift Logic)
     if (pos.z > 0.0f && currentSpeed <= (float)optimalTurnSpeed) {
         float safeLiftCoef = liftCoefficent > 0.0f ? (float)liftCoefficent : 1.0f;
         float liftDeficit = 1.0f - (currentSpeed / (float)optimalTurnSpeed);
@@ -74,7 +74,7 @@ void Flyable::tick(float deltaTime) {
         velocity.z -= descentRate;
     }
 
-    // 6. FINAL POSITION UPDATE
+    // FINAL POSITION UPDATE
     pos += velocity * deltaTime;
 
     if (pos.z < 0.0f) {
