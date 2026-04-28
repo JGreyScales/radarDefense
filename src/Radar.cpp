@@ -344,6 +344,10 @@ CollisionPolygon2D *godot::Radar::get_radar_collision_object() {
 	return this->radarCollisionObject;
 }
 
+Vehicle *godot::Radar::get_data_link_child() {
+	return this->dataLinkChild;
+}
+
 void godot::Radar::set_id(String id) {
 	this->id = id;
 }
@@ -388,6 +392,10 @@ void godot::Radar::set_scan_chunk_size(uint8_t newSize) {
 
 void godot::Radar::set_search_area(uint8_t newSearchArea) {
 	this->searchArea = newSearchArea;
+}
+
+void godot::Radar::set_data_link_child(Vehicle *child) {
+	this->dataLinkChild = child;
 }
 
 void godot::Radar::clear_radar_points() {

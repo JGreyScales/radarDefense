@@ -52,7 +52,7 @@ private:
     uint8_t searchelevation;
     double curX;
     uint8_t scanChankSize;
-    // flyable dataLinkChild
+    Vehicle* dataLinkChild;
 
     // linger target stuff
     float lingerTime;
@@ -94,6 +94,7 @@ public:
     std::unordered_set<Vehicle*>* get_presence_map();
     PackedVector2Array get_radar_points();
     CollisionPolygon2D* get_radar_collision_object();
+    Vehicle* get_data_link_child();
 
 
 
@@ -108,6 +109,7 @@ public:
     void set_cur_x(double newX);
     void set_scan_chunk_size(uint8_t newSize);
     void set_search_area(uint8_t newSearchArea);
+    void set_data_link_child(Vehicle* child);
 
     void clear_radar_points();
     void add_radar_point(Vector2);

@@ -3,10 +3,271 @@
 
 using namespace godot;
 
+void Flyable::_bind_methods() {
+    // --- Core Guidance ---
+    ClassDB::bind_method(D_METHOD("get_despawn_if_cant_hit"), &Flyable::get_despawn_if_cant_hit);
+    ClassDB::bind_method(D_METHOD("set_despawn_if_cant_hit", "state"), &Flyable::set_despawn_if_cant_hit);
+    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "despawn_if_cant_hit"), "set_despawn_if_cant_hit", "get_despawn_if_cant_hit");
+
+    ClassDB::bind_method(D_METHOD("get_target_elevation"), &Flyable::get_target_elevation);
+    ClassDB::bind_method(D_METHOD("set_target_elevation", "value"), &Flyable::set_target_elevation);
+    ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "target_elevation"), "set_target_elevation", "get_target_elevation");
+
+    // --- Performance & Weight ---
+    ClassDB::bind_method(D_METHOD("get_weight"), &Flyable::get_weight);
+    ClassDB::bind_method(D_METHOD("set_weight", "value"), &Flyable::set_weight);
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "weight"), "set_weight", "get_weight");
+
+    ClassDB::bind_method(D_METHOD("get_turn_rate"), &Flyable::get_turn_rate);
+    ClassDB::bind_method(D_METHOD("set_turn_rate", "value"), &Flyable::set_turn_rate);
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "turn_rate"), "set_turn_rate", "get_turn_rate");
+
+    ClassDB::bind_method(D_METHOD("get_optimal_turn_speed"), &Flyable::get_optimal_turn_speed);
+    ClassDB::bind_method(D_METHOD("set_optimal_turn_speed", "value"), &Flyable::set_optimal_turn_speed);
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "optimal_turn_speed"), "set_optimal_turn_speed", "get_optimal_turn_speed");
+
+    // --- Fuel ---
+    ClassDB::bind_method(D_METHOD("get_fuel_time"), &Flyable::get_fuel_time);
+    ClassDB::bind_method(D_METHOD("set_fuel_time", "value"), &Flyable::set_fuel_time);
+    ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "fuel_time"), "set_fuel_time", "get_fuel_time");
+
+    // --- PID Constants ---
+    ClassDB::bind_method(D_METHOD("get_PID_prop_term"), &Flyable::get_PID_prop_term);
+    ClassDB::bind_method(D_METHOD("set_PID_prop_term", "value"), &Flyable::set_PID_prop_term);
+    
+    ClassDB::bind_method(D_METHOD("get_PID_int_term"), &Flyable::get_PID_int_term);
+    ClassDB::bind_method(D_METHOD("set_PID_int_term", "value"), &Flyable::set_PID_int_term);
+
+    ClassDB::bind_method(D_METHOD("get_PID_der_term"), &Flyable::get_PID_der_term);
+    ClassDB::bind_method(D_METHOD("set_PID_der_term", "value"), &Flyable::set_PID_der_term);
+
+    // --- Combat ---
+    ClassDB::bind_method(D_METHOD("get_proximity_fuze_radius"), &Flyable::get_proximity_fuze_radius);
+    ClassDB::bind_method(D_METHOD("set_proximity_fuze_radius", "value"), &Flyable::set_proximity_fuze_radius);
+    ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "proximity_fuze_radius"), "set_proximity_fuze_radius", "get_proximity_fuze_radius");
+
+    // --- Combat Actions ---
+    ClassDB::bind_method(D_METHOD("tick", "delta_time"), &Flyable::tick);
+    ClassDB::bind_method(D_METHOD("move", "target", "delta_time"), &Flyable::move);
+    ClassDB::bind_method(D_METHOD("calculateOptimalFlightPath", "target", "delta_time"), &Flyable::calculateOptimalFlightPath);
+}
+
 Flyable::Flyable() {
 }
 
 Flyable::~Flyable() {}
+
+void Flyable::set_despawn_if_cant_hit(bool state) {
+    this->despawnIfCantHitTarget = state;
+}
+
+void Flyable::set_time_to_destruction(float value) {
+    this->timeToDestruction = value;
+}
+
+void Flyable::set_maximum_altitude(uint8_t value) {
+    this->maximumAltitude = value;
+}
+
+void Flyable::set_fuel_time(float value) {
+    this->fuelTime = value;
+}
+
+void Flyable::set_fuel_weight_per_L(float value) {
+    this->fuelWeightPerL = value;
+}
+
+void Flyable::set_fuel_flow_rate_L(float value) {
+    this->fuelFlowRateL = value;
+}
+
+void Flyable::set_weight(uint16_t value) {
+    this->weight = value;
+}
+
+void Flyable::set_wep_timer(uint8_t value) {
+    this->wepTimer = value;
+}
+
+void Flyable::set_wep_overload(uint8_t value) {
+    this->wepOverload = value;
+}
+
+void Flyable::set_turn_rate(uint8_t value) {
+    this->turnRate = value;
+}
+
+void Flyable::set_optimal_turn_speed(uint16_t value) {
+    this->optimalTurnSpeed = value;
+}
+
+void Flyable::set_lift_coefficent(uint8_t value) {
+    this->liftCoefficent = value;
+}
+
+void Flyable::set_engine_thrust_output(float value) {
+    this->engineThrustOutput = value;
+}
+
+void Flyable::set_PID_prop_term(float value) {
+    this->PID_prop_term = value;
+}
+
+void Flyable::set_PID_int_term(float value) {
+    this->PID_int_term = value;
+}
+
+void Flyable::set_PID_der_term_limit(float value) {
+    this->PID_int_term_limit = value;
+}
+
+void Flyable::set_PID_der_term(float value) {
+    this->PID_der_term = value;
+}
+
+void Flyable::set_integral_error_sum(float value) {
+    this->integralErrorSum = value;
+}
+
+void Flyable::set_target_elevation(float value) {
+    this->targetElevation = value;
+}
+
+void Flyable::set_proximity_fuze_radius(float value) {
+    this->proximityFuzeRadiusM = value;
+}
+
+void Flyable::set_prev_yaw_error(float value) {
+    this->prevYawError = value;
+}
+
+void Flyable::set_yaw_integral(float value) {
+    this->yawIntegral = value;
+}
+
+void Flyable::set_prev_pitch_error(float value) {
+    this->prevPitchError = value;
+}
+
+void Flyable::set_pitch_integral(float value) {
+    this->pitchIntegral = value;
+}
+
+void Flyable::set_chaff_count(uint8_t value) {
+    this->chaffCount = value;
+}
+
+void Flyable::set_flare_count(uint8_t value) {
+    this->flareCount = value;
+}
+
+void Flyable::set_interception_target(MapIcon *object) {
+    this->interceptionTarget = object;
+}
+
+bool Flyable::get_despawn_if_cant_hit() {
+	return this->despawnIfCantHitTarget;
+}
+
+float Flyable::get_time_to_destruction() {
+	return this->timeToDestruction;
+}
+
+uint8_t Flyable::get_maximum_altitude() {
+	return this->maximumAltitude;
+}
+
+float Flyable::get_fuel_time() {
+	return this->fuelTime;
+}
+
+float Flyable::get_fuel_weight_per_L() {
+	return this->fuelWeightPerL;
+}
+
+float Flyable::get_fuel_float_rate_L() {
+	return this->fuelFlowRateL;
+}
+
+uint16_t Flyable::get_weight() {
+	return this->weight;
+}
+
+uint8_t Flyable::get_wep_timer() {
+	return this->wepTimer;
+}
+
+uint8_t Flyable::get_wep_overload() {
+	return this->wepOverload;
+}
+
+uint8_t Flyable::get_turn_rate() {
+	return this->turnRate;
+}
+
+uint16_t Flyable::get_optimal_turn_speed() {
+	return this->optimalTurnSpeed;
+}
+
+uint8_t Flyable::get_lift_coefficent() {
+	return this->liftCoefficent;
+}
+
+float Flyable::get_engine_thrust_output() {
+	return this->engineThrustOutput;
+}
+
+float Flyable::get_PID_prop_term() {
+	return this->PID_prop_term;
+}
+
+float Flyable::get_PID_int_term() {
+	return this->PID_int_term;
+}
+
+float Flyable::get_PID_der_term_limit() {
+	return this->PID_int_term_limit;
+}
+
+float Flyable::get_PID_der_term() {
+	return this->PID_der_term;
+}
+
+float Flyable::get_integral_error_sum() {
+	return this->integralErrorSum;
+}
+
+float Flyable::get_target_elevation() {
+	return this->targetElevation;
+}
+
+float Flyable::get_proximity_fuze_radius() {
+	return this->proximityFuzeRadiusM;
+}
+
+float Flyable::get_prev_yaw_error() {
+	return this->prevYawError;
+}
+
+float Flyable::get_yaw_integral() {
+	return this->yawIntegral;
+}
+
+float Flyable::get_prev_pitch_error() {
+	return this->prevPitchError;
+}
+
+float Flyable::get_pitch_integral() {
+	return this->pitchIntegral;
+}
+
+uint8_t Flyable::get_chaff_count() {
+	return this->chaffCount;
+}
+
+uint8_t Flyable::get_flare_count() {
+	return this->flareCount;
+}
 
 void Flyable::tick(float deltaTime) {
     if (deltaTime <= 0.0f) return;
@@ -121,7 +382,39 @@ Flyable *Flyable::clone() {
 	returnValue->set_line_of_sight_detection(this->get_line_of_sight_detection());
 	returnValue->set_rwr_detection(this->get_rwr_detection());
 
-    //flyable
+    // Flyable Core Stats
+    returnValue->set_despawn_if_cant_hit(this->get_despawn_if_cant_hit());
+    returnValue->set_time_to_destruction(this->get_time_to_destruction());
+    returnValue->set_maximum_altitude(this->get_maximum_altitude());
+
+    // Fuel and Weight
+    returnValue->set_fuel_time(this->get_fuel_time());
+    returnValue->set_fuel_weight_per_L(this->get_fuel_weight_per_L());
+    returnValue->set_fuel_flow_rate_L(this->get_fuel_float_rate_L());
+    returnValue->set_weight(this->get_weight());
+
+    // WEP System
+    returnValue->set_wep_timer(this->get_wep_timer());
+    returnValue->set_wep_overload(this->get_wep_overload());
+
+    // Aerodynamics & Propulsion
+    returnValue->set_turn_rate(this->get_turn_rate());
+    returnValue->set_optimal_turn_speed(this->get_optimal_turn_speed());
+    returnValue->set_lift_coefficent(this->get_lift_coefficent());
+    returnValue->set_engine_thrust_output(this->get_engine_thrust_output());
+
+    // PID Constants & Guidance
+    returnValue->set_PID_prop_term(this->get_PID_prop_term());
+    returnValue->set_PID_int_term(this->get_PID_int_term());
+    returnValue->set_PID_der_term(this->get_PID_der_term());
+    returnValue->set_PID_der_term_limit(this->get_PID_der_term_limit());
+    returnValue->set_integral_error_sum(this->get_integral_error_sum());
+    returnValue->set_target_elevation(this->get_target_elevation());
+
+    // Combat & Countermeasures
+    returnValue->set_proximity_fuze_radius(this->get_proximity_fuze_radius());
+    returnValue->set_chaff_count(this->get_chaff_count());
+    returnValue->set_flare_count(this->get_flare_count());
 
 
 	return nullptr;
@@ -236,6 +529,24 @@ Vector2 Flyable::calculateOptimalFlightPath(MapIcon* target, float deltaTime) {
     float dy = target->get_y() - get_y();
     float dz = target->get_z() - get_z();
     float groundDist = Math::sqrt(dx * dx + dy * dy);
+
+    // proxy fuze is in meters
+    if (groundDist < (proximityFuzeRadiusM * METERS_TO_GODOT_UNIT)){
+        memdelete(this);
+        memdelete(this->get_move_waypoint());
+        queue_redraw();
+        return Vector2(0, 0);
+    }
+
+    if (this->despawnIfCantHitTarget) {
+        float desiredRelativeHeight = groundDist * targetElevation;
+        bool significantlyBelow = (dz > desiredRelativeHeight);
+        bool closeRange = (groundDist < (6 * KM_TO_GODOT_UNIT));
+
+        if (!closeRange && !significantlyBelow) {
+            dz = (target->get_z() + desiredRelativeHeight) - get_z();
+        }
+    }
 
     float desiredYaw = Math::atan2(dy, dx); 
     float desiredPitch = Math::atan2(dz, Math::max(groundDist, 0.01f));

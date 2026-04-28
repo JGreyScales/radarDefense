@@ -22,7 +22,7 @@ public:
     Weapon(String id);
     ~Weapon();
 
-    Flyable* deploy(void* parent, void* target);
+    Flyable* deploy(Vehicle* parent, Vehicle* target);
     String getName();
     String getID();
     uint8_t getDropWeight();

@@ -16,6 +16,11 @@
 #include <godot_cpp/classes/button_group.hpp>
 
 
+#define METERS_TO_GODOT_UNIT 1.0f
+#define KM_TO_GODOT_UNIT     1000.0f
+
+#define GODOT_UNIT_TO_KM     0.001f
+
 namespace godot {
 
 class GlobalManager : public Node2D {

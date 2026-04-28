@@ -1,5 +1,6 @@
 #include "Weapon.h"
 #include "Vehicle.h"
+#include "Globals.h"
 
 Weapon::Weapon(String id) {
     this->id = id;
@@ -8,8 +9,13 @@ Weapon::Weapon(String id) {
 Weapon::~Weapon() {
 }
 
-Flyable *Weapon::deploy(void *parent, void *target) {
-	return nullptr;
+Flyable *Weapon::deploy(Vehicle *parent, Vehicle*target) {
+	Flyable* spawnedObject = static_cast<Flyable*>(GlobalManager::get_vehicle_from_id(this->id));
+
+	spawnedObject->set_move_waypoint(target);
+	spawnedObject->get_radar()->set_data_link_child(parent);
+
+	return spawnedObject;
 }
 
 String Weapon::getName() {

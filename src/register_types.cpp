@@ -10,6 +10,8 @@
 #include "SearchRadar.h"
 #include "MyCamera.h"
 #include "targetListButton.h"
+#include "Loadout.h"
+#include "Flyable.h"
 
 using namespace godot;
 
@@ -28,8 +30,10 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level)
 	GDREGISTER_CLASS(GlobalManager);
 	GDREGISTER_CLASS(SearchRadar);
 	GDREGISTER_CLASS(Driveable);
+	GDREGISTER_CLASS(Flyable);
 	GDREGISTER_CLASS(MyCamera);
 	GDREGISTER_CLASS(TargetListButton);
+
 
 	_global_manager = memnew(GlobalManager);
 
