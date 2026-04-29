@@ -14,7 +14,7 @@ void objectCreationList::AIM_54_A() {
     AIM_54_A_Radar->set_scan_chunk_size(60);
     AIM_54_A_Radar->set_search_area(60);
     AIM_54_A_Radar->set_maximum_range(25);
-    AIM_54_A_Radar->set_precision_factor(0.3);
+    AIM_54_A_Radar->set_precision_factor(30);
     AIM_54_A_Radar->set_offensive(true);
     AIM_54_A_Radar->set_name(name + " Radar");
     AIM_54_A_Radar->set_id(id + "_RADAR");
@@ -39,6 +39,7 @@ void objectCreationList::AIM_54_A() {
     AIM_54_A_Missile->set_name(name);
     AIM_54_A_Missile->set_id(id);
     AIM_54_A_Missile->set_radar(AIM_54_A_Radar);
+    AIM_54_A_Missile->set_proximity_fuze_radius(20);
     GlobalManager::register_vehicle_into_registry(AIM_54_A_Missile);
 
     AIM_54_A_Weapon->setName(name);
