@@ -14,6 +14,7 @@ MyCamera::~MyCamera() {}
 void MyCamera::_input(const Ref<InputEvent> &p_event) {
     Ref<InputEventMouseButton> mb = p_event;
     if (mb.is_valid()) {
+
         // --- PANNING LOGIC ---
         if (mb->get_button_index() == MOUSE_BUTTON_MIDDLE) {
             is_panning = mb->is_pressed();
@@ -30,8 +31,8 @@ void MyCamera::_input(const Ref<InputEvent> &p_event) {
                 current_zoom -= Vector2(zoom_speed, zoom_speed);
             }
 
-            current_zoom.x = Math::clamp(current_zoom.x, (real_t)0.05, (real_t)10.0);
-            current_zoom.y = Math::clamp(current_zoom.y, (real_t)0.05, (real_t)10.0);
+            current_zoom.x = Math::clamp(current_zoom.x, (real_t)0.01, (real_t)11.0);
+            current_zoom.y = Math::clamp(current_zoom.y, (real_t)0.01, (real_t)11.0);
             
             set_zoom(current_zoom);
         }

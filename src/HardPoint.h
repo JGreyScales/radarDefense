@@ -29,6 +29,7 @@ namespace godot {
     void addWeaponOption(Weapon*);
     Weapon* getEquippedWeapon();
     void setEquippedWeapon(Weapon*);
+    HardPoint* clone();
     };
 }
 #endif

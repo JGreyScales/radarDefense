@@ -23,19 +23,24 @@ godot::Loadout::Loadout() {
 	this->hardPoints = Vector<HardPoint *>();
 }
 
-Loadout::Loadout(const Loadout &p_other) : Object() {
-    copy_from(p_other);
-}
 
 godot::Loadout::~Loadout() {
 }
 
 
+Loadout* Loadout::clone() {
+    Loadout* newLoadout = memnew(Loadout);
+    newLoadout->id = this->id;
+    newLoadout->setWeaponArraySize(this->hardPoints.size());
 
-void Loadout::copy_from(const Loadout &p_other) {
-    this->hardPoints = p_other.hardPoints;
-    this->totalLoadoutWeight = p_other.totalLoadoutWeight;
-    this->id = p_other.id;
+    for (int i = 0; i < this->hardPoints.size(); i++) {
+        if (this->hardPoints[i] != nullptr) {
+            newLoadout->setHardpointAtIndex(i, this->hardPoints[i]->clone());
+        }
+    }
+
+    newLoadout->calculateLoadoutWeight();
+    return newLoadout;
 }
 
 void godot::Loadout::calculateLoadoutWeight() {
@@ -82,7 +87,7 @@ void godot::Loadout::setHardpointAtIndex(int index, HardPoint *hardpoint) {
 
 	if (old_hp != nullptr) {
 		if (old_hp != hardpoint) {
-			delete old_hp;
+			memdelete(old_hp);
 		}
 	}
 

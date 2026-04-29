@@ -39,7 +39,7 @@ private:
 
     // Pilot
     Radar* radar;
-    Loadout loadout;
+    Loadout* loadout;
 
     uint16_t maxSpeed;
     uint8_t radarCrossSection;
@@ -89,7 +89,7 @@ public:
     void remove_being_tracked_by(Vehicle* tracked_by);
     void set_move_waypoint(MapIcon* waypoint);
     void set_weight(uint16_t value);
-    void set_loadout(Loadout);
+    void set_loadout(Loadout*);
 
     
     virtual void tick(float deltaTime) = 0;

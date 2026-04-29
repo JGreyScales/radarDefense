@@ -23,10 +23,11 @@ private:
     String id;
 public:
 	Loadout(/* args */);
-    Loadout(const Loadout &p_other);
+    // Loadout(const Loadout &p_other);
 	~Loadout();
 
-    void copy_from(const Loadout &p_other);
+    // void copy_from(const Loadout &p_other);
+    Loadout* clone();
     void calculateLoadoutWeight();
     int16_t getLoadoutWeight();
     Weapon* getWeaponAtIndex(int index);

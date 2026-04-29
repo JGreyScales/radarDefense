@@ -25,7 +25,9 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level)
 	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
 		return;
 	}
-	GDREGISTER_CLASS(MapIcon);
+
+	UtilityFunctions::print("Loading generics");
+	GDREGISTER_CLASS(MapIcon);	
 	GDREGISTER_ABSTRACT_CLASS(Vehicle);
 	GDREGISTER_ABSTRACT_CLASS(Radar);
 	GDREGISTER_CLASS(GlobalManager);
@@ -35,10 +37,17 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level)
 	GDREGISTER_CLASS(MyCamera);
 	GDREGISTER_CLASS(TargetListButton);
 
+	UtilityFunctions::print("Loading loadout");
 	GDREGISTER_CLASS(Loadout);
 	GDREGISTER_CLASS(HardPoint);
 	GDREGISTER_CLASS(Weapon);
 
+	UtilityFunctions::print("Loading radars");
+	GDREGISTER_CLASS(semiActiveRadar);
+	GDREGISTER_CLASS(activeRadar);
+
+	
+	UtilityFunctions::print("Loading objects done");
 
 	_global_manager = memnew(GlobalManager);
 

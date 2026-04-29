@@ -5,6 +5,9 @@
 
 void objectCreationList::registry_setup() {
     objectCreationList::AIM_54_A();
+
+    // planes
+    objectCreationList::F14B();
 }
 
 void objectCreationList::AIM_54_A() {
@@ -61,7 +64,7 @@ void objectCreationList::F14B() {
 
     Radar* F14B_Radar = memnew(SearchRadar);
     Flyable* F14B_Plane = memnew(Flyable);
-    Loadout F14B_Loadout;
+    Loadout* F14B_Loadout = memnew(Loadout);
 
     
 
@@ -82,11 +85,11 @@ void objectCreationList::F14B() {
     HardPoint* hardpoint8 = memnew(HardPoint);
     hardpoint8->addWeaponOption(aim54A_1);
 
-    F14B_Loadout.setWeaponArraySize(9);
-    F14B_Loadout.setHardpointAtIndex(2, hardpoint2);
-    F14B_Loadout.setHardpointAtIndex(4, hardpoint4);
-    F14B_Loadout.setHardpointAtIndex(6, hardpoint6);
-    F14B_Loadout.setHardpointAtIndex(8, hardpoint8);
+    F14B_Loadout->setWeaponArraySize(9);
+    F14B_Loadout->setHardpointAtIndex(2, hardpoint2);
+    F14B_Loadout->setHardpointAtIndex(4, hardpoint4);
+    F14B_Loadout->setHardpointAtIndex(6, hardpoint6);
+    F14B_Loadout->setHardpointAtIndex(8, hardpoint8);
 
 
     F14B_Radar->set_scan_chunk_size(10);
@@ -100,6 +103,7 @@ void objectCreationList::F14B() {
     GlobalManager::register_radar_into_registry(F14B_Radar);
 
     
+    F14B_Plane->set_despawn_if_cant_hit(false);
     F14B_Plane->set_weight(43210);
     F14B_Plane->set_fuel_time(3180);
     F14B_Plane->set_fuel_weight_per_L(5.09);

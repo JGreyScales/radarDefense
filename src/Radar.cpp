@@ -126,7 +126,7 @@ void Radar::scan_chunk(Vehicle *parent, double delta) {
     std::deque<TrackedFrame> &history = *get_target_history();
     std::unordered_set<Vehicle *> &p_map = *get_presence_map();
     Vector3 parentPos = Vector3(parent->get_x(), parent->get_y(), parent->get_z());
-    float maxRange = (float)this->get_maximum_range() * GODOT_UNIT_TO_KM;
+    float maxRange = (float)this->get_maximum_range() * KM_TO_GODOT_UNIT;
 
     for (std::deque<TrackedFrame>::iterator it = history.begin(); it != history.end(); ) {
         Vehicle* target = it->target;
@@ -158,7 +158,7 @@ void Radar::scan_chunk(Vehicle *parent, double delta) {
     // --- END DISTANCE CLEANUP ---
 
     this->clear_radar_points();
-    float angleSrc = parent->get_direction() + this->get_cur_x();
+    float angleSrc = this->get_cur_x();
     float angle_to = angleSrc + (float)this->get_scan_chunk_size();
 
     // Draw the radar polygon

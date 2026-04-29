@@ -133,6 +133,18 @@ void GlobalManager::setup_initial_scene() {
 	// demoVehicley->set_y(300);
 	// this->add_child(demoVehicley);
 	// UtilityFunctions::print("Vehicle spawned and added to the scene!");
+
+	UtilityFunctions::print("Spawning vehicles");
+
+	Vehicle* f14B_1 = GlobalManager::get_vehicle_from_id("F_14_B");
+	UtilityFunctions::print("f14b radar is " + f14B_1->get_radar()->get_name());
+	f14B_1->set_x(50);
+	f14B_1->set_y(50);
+	f14B_1->set_z(17);
+	f14B_1->set_speed(781);
+	this->add_child(f14B_1);
+	UtilityFunctions::print("Vehicle spawned and added to the scene!");
+
 }
 
 GlobalManager *GlobalManager::singleton = nullptr;
@@ -140,34 +152,37 @@ GlobalManager *GlobalManager::singleton = nullptr;
 void godot::GlobalManager::register_vehicle_into_registry(Vehicle *vehicle) {
 	String ID = vehicle->get_id();
 
-	UtilityFunctions::print("Adding: " + ID + " to the registry");
+	UtilityFunctions::print("Adding: " + ID + " to the Vehicle registry");
 	if (GlobalManager::vehicleRegistry.has(ID)) {
 		UtilityFunctions::print("aborting... already in the registry");
 	} else {
 		GlobalManager::vehicleRegistry[ID] = vehicle;
 	}
+	UtilityFunctions::print("DONE");
 }
 
 void godot::GlobalManager::register_radar_into_registry(Radar *radar) {
 	String ID = radar->get_id();
 
-	UtilityFunctions::print("Adding: " + ID + " to the registry");
+	UtilityFunctions::print("Adding: " + ID + " to the  Radar registry");
 	if (GlobalManager::radarRegistry.has(ID)) {
 		UtilityFunctions::print("aborting... already in the registry");
 	} else {
 		GlobalManager::radarRegistry[ID] = radar;
 	}
+	UtilityFunctions::print("DONE");
 }
 
 void godot::GlobalManager::register_weapon_into_registry(Weapon *weapon) {
 	String ID = weapon->getID();
 
-	UtilityFunctions::print("Adding: " + ID + " to the registry");
+	UtilityFunctions::print("Adding: " + ID + " to the  Weapon registry");
 	if (GlobalManager::weaponRegistry.has(ID)) {
 		UtilityFunctions::print("aborting... already in the registry");
 	} else {
 		GlobalManager::weaponRegistry[ID] = weapon;
 	}
+	UtilityFunctions::print("DONE");
 }
 
 bool godot::GlobalManager::should_ui_element_be_visible(String text) {
@@ -198,7 +213,24 @@ godot::GlobalManager::~GlobalManager() {
 			memdelete(v);
 		}
 	}
+
+	for (const KeyValue<String, Radar *> &R : radarRegistry) {
+		Radar *v = R.value;
+		if (v) {
+			memdelete(v);
+		}
+	}
+
+	for (const KeyValue<String, Weapon *> &W : weaponRegistry) {
+		Weapon *v = W.value;
+		if (v) {
+			memdelete(v);
+		}
+	}
+
 	vehicleRegistry.clear();
+	weaponRegistry.clear();
+	radarRegistry.clear();
 
 	// we are the singleton, we are being deleted as soon as this line finishes
 	GlobalManager::singleton = nullptr;

@@ -36,20 +36,20 @@ void Vehicle::_notification(int p_what) {
 
 				Ref<RectangleShape2D> rect;
 				rect.instantiate();
-				rect->set_size(Vector2(10, 10));
+				rect->set_size(Vector2(20, 20));
 				hitbox_shape->set_shape(rect);
 			}
 
-			if (this->currentScaleFactor != 1.0f) {
-                Vector2 inv_scale = Vector2(1.0f / this->currentScaleFactor, 1.0f / this->currentScaleFactor);
-                TypedArray<Node> children = get_children();
-                for (int i = 0; i < children.size(); i++) {
-                    Node2D *child_node = Object::cast_to<Node2D>(children[i]);
-                    if (child_node) {
-                        child_node->set_scale(inv_scale);
-                    }
-                }
-            }
+			// if (this->currentScaleFactor != 1.0f) {
+            //     Vector2 inv_scale = Vector2(1.0f / this->currentScaleFactor, 1.0f / this->currentScaleFactor);
+            //     TypedArray<Node> children = get_children();
+            //     for (int i = 0; i < children.size(); i++) {
+            //         Node2D *child_node = Object::cast_to<Node2D>(children[i]);
+            //         if (child_node) {
+            //             child_node->set_scale(inv_scale);
+            //         }
+            //     }
+            // }
 			break;
 	}
 }
@@ -115,6 +115,7 @@ Vehicle::Vehicle() {
 	this->hitbox = nullptr;
 	this->hitbox_shape = nullptr;
 	this->moveWaypoint = nullptr;
+	this->loadout = nullptr;
 
 	this->maxSpeed = 0;
 	this->radarCrossSection = 0;
@@ -206,7 +207,7 @@ uint16_t godot::Vehicle::get_weight() {
 }
 
 Loadout *godot::Vehicle::get_loadout() {
-	return &(this->loadout);
+	return this->loadout;
 }
 
 void godot::Vehicle::set_id(String id) {
@@ -267,6 +268,13 @@ void godot::Vehicle::set_weight(uint16_t value) {
     this->weight = value;
 }
 
-void Vehicle::set_loadout(Loadout p_loadout) {
-    this->loadout.copy_from(p_loadout);
+void Vehicle::set_loadout(Loadout* p_loadout) {
+    if (this->loadout != nullptr) {
+        memdelete(this->loadout);
+        this->loadout = nullptr;
+    }
+
+    if (p_loadout != nullptr) {
+        this->loadout = p_loadout->clone();
+    }
 }

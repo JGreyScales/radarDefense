@@ -108,6 +108,7 @@ int Weapon::getEffectiveRange(Flyable *self) {
 }
 
 Weapon *Weapon::clone() {
+    UtilityFunctions::print("cloning weapon");
     Weapon* returnValue = memnew(Weapon);
 
     returnValue->setCapacity(this->getCapacity());

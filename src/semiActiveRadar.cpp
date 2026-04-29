@@ -1,6 +1,8 @@
 #include "semiActiveRadar.h"
 #include "Vehicle.h"
 
+void semiActiveRadar::_bind_methods() {
+}
 
 void semiActiveRadar::select_best_target(TypedArray<Vehicle> possibleTargets, Vehicle *parent) {
 	std::unordered_set<Vehicle*>* host_radar_targets = this->get_host_radar()->get_presence_map();

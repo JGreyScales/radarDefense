@@ -14,11 +14,14 @@
 #include <godot_cpp/classes/grid_container.hpp>
 #include <godot_cpp/classes/button_group.hpp>
 
+#define SCALE_FACTOR 0.01
 
-#define METERS_TO_GODOT_UNIT 1.0f
-#define KM_TO_GODOT_UNIT     1000.0f
+#define METERS_TO_GODOT_UNIT 1.0f * SCALE_FACTOR
+#define KM_TO_GODOT_UNIT     1000.0f * SCALE_FACTOR
 
-#define GODOT_UNIT_TO_KM     0.001f
+#define GODOT_UNIT_TO_KM     0.001f * SCALE_FACTOR
+
+
 
 namespace godot {
 

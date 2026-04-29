@@ -3,13 +3,13 @@
 
 namespace godot {
 void HardPoint::_bind_methods() {
-    ClassDB::bind_method(D_METHOD("get_weapon_option_names"), &HardPoint::getWeaponOptionNames);
-    ClassDB::bind_method(D_METHOD("add_weapon_option", "weapon"), &HardPoint::addWeaponOption);
-    ClassDB::bind_method(D_METHOD("get_equipped_weapon"), &HardPoint::getEquippedWeapon);
-    ClassDB::bind_method(D_METHOD("set_equipped_weapon", "weapon"), &HardPoint::setEquippedWeapon);
+	ClassDB::bind_method(D_METHOD("get_weapon_option_names"), &HardPoint::getWeaponOptionNames);
+	ClassDB::bind_method(D_METHOD("add_weapon_option", "weapon"), &HardPoint::addWeaponOption);
+	ClassDB::bind_method(D_METHOD("get_equipped_weapon"), &HardPoint::getEquippedWeapon);
+	ClassDB::bind_method(D_METHOD("set_equipped_weapon", "weapon"), &HardPoint::setEquippedWeapon);
 
-    // Adding a property for the editor/GDScript
-    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "equipped_weapon", PROPERTY_HINT_RESOURCE_TYPE, "Weapon"), "set_equipped_weapon", "get_equipped_weapon");
+	// Adding a property for the editor/GDScript
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "equipped_weapon", PROPERTY_HINT_RESOURCE_TYPE, "Weapon"), "set_equipped_weapon", "get_equipped_weapon");
 }
 
 HardPoint::HardPoint() {
@@ -60,5 +60,22 @@ void HardPoint::setEquippedWeapon(Weapon *selectedWeapon) {
 	} else {
 		this->equippedWeapon = nullptr;
 	}
+}
+
+HardPoint *HardPoint::clone() {
+	HardPoint *newHp = memnew(HardPoint);
+
+	if (this->equippedWeapon != nullptr) {
+		newHp->setEquippedWeapon(this->equippedWeapon->clone());
+	}
+
+	for (int i = 0; i < this->options.size(); i++) {
+		Weapon *currentOption = this->options[i];
+		if (currentOption != nullptr) {
+			newHp->addWeaponOption(currentOption->clone());
+		}
+	}
+
+	return newHp;
 }
 } //namespace godot
