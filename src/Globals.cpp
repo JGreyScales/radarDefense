@@ -1,4 +1,5 @@
 #include "Globals.h"
+#include "Weapon.h"
 
 #include <godot_cpp/variant/utility_functions.hpp>
 Vector<Vehicle *> GlobalManager::activeVehicles;
@@ -13,71 +14,6 @@ godot::Label *godot::GlobalManager::xyzTitle = nullptr;
 godot::Label *godot::GlobalManager::xyzValue = nullptr;
 godot::GridContainer* godot::GlobalManager::targetList = nullptr;
 
-Radar *createDemoRadar() {
-	SearchRadar *demoRadar = memnew(SearchRadar);
-
-	demoRadar->set_name("demo radar");
-	demoRadar->set_id("demo1_radar");
-	demoRadar->set_offensive(false);
-	demoRadar->set_has_at_least_one_viable_target(false);
-	demoRadar->set_precision_factor(50);
-	demoRadar->set_maximum_range(500);
-	demoRadar->set_search_area(180);
-	demoRadar->set_search_elevation(90);
-	demoRadar->set_scan_chunk_size(5);
-
-	return demoRadar;
-}
-
-Radar *createDemoFrontRadar() {
-	SearchRadar *demoRadar = memnew(SearchRadar);
-
-	demoRadar->set_name("demo front radar");
-	demoRadar->set_id("demo1_front_radar");
-	demoRadar->set_offensive(false);
-	demoRadar->set_has_at_least_one_viable_target(false);
-	demoRadar->set_precision_factor(80);
-	demoRadar->set_maximum_range(500);
-	demoRadar->set_search_area(60);
-	demoRadar->set_search_elevation(90);
-	demoRadar->set_scan_chunk_size(5);
-
-	return demoRadar;
-}
-
-Driveable *createDemoRadarTruck() {
-	Driveable *demoTruck = memnew(Driveable);
-
-	// driveable
-	demoTruck->set_name("Demo Truck");
-	demoTruck->set_path("res://icons/Pantsir-S2.svg");
-	demoTruck->set_id("demo_radar_truck");
-	demoTruck->set_radar(GlobalManager::get_radar_from_id("demo1_radar"));
-	demoTruck->set_max_speed(40);
-	demoTruck->set_radar_cross_section(90);
-	demoTruck->set_ir_signature(90);
-	demoTruck->set_line_of_sight_detection(20);
-	demoTruck->set_rwr_detection(0);
-
-	return demoTruck;
-}
-
-Driveable *createDemoFrontRadarTruck() {
-	Driveable *demoTruck = memnew(Driveable);
-
-	// driveable
-	demoTruck->set_name("Demo Front Truck");
-	demoTruck->set_path("res://icons/Pantsir-S2.svg");
-	demoTruck->set_id("demo_front_radar_truck");
-	demoTruck->set_radar(GlobalManager::get_radar_from_id("demo1_front_radar"));
-	demoTruck->set_max_speed(40);
-	demoTruck->set_radar_cross_section(60);
-	demoTruck->set_ir_signature(90);
-	demoTruck->set_line_of_sight_detection(20);
-	demoTruck->set_rwr_detection(0);
-
-	return demoTruck;
-}
 
 using namespace godot;
 
@@ -180,13 +116,13 @@ void GlobalManager::setup_initial_scene() {
 
 	// this is where vehicles will be created
 
-	// radars
-	this->register_radar_into_registry(createDemoRadar());
-	this->register_radar_into_registry(createDemoFrontRadar());
+	// // radars
+	// this->register_radar_into_registry(createDemoRadar());
+	// this->register_radar_into_registry(createDemoFrontRadar());
 
-	// driveables
-	this->register_vehicle_into_registry(createDemoRadarTruck());
-	this->register_vehicle_into_registry(createDemoFrontRadarTruck());
+	// // driveables
+	// this->register_vehicle_into_registry(createDemoRadarTruck());
+	// this->register_vehicle_into_registry(createDemoFrontRadarTruck());
 
 	UtilityFunctions::print("GlobalManager: Scene is ready. Spawning units...");
 
@@ -228,6 +164,17 @@ void godot::GlobalManager::register_radar_into_registry(Radar *radar) {
 		UtilityFunctions::print("aborting... already in the registry");
 	} else {
 		GlobalManager::radarRegistry[ID] = radar;
+	}
+}
+
+void godot::GlobalManager::register_weapon_into_registry(Weapon *weapon) {
+	String ID = weapon->getID();
+
+	UtilityFunctions::print("Adding: " + ID + " to the registry");
+	if (GlobalManager::weaponRegistry.has(ID)) {
+		UtilityFunctions::print("aborting... already in the registry");
+	} else {
+		GlobalManager::weaponRegistry[ID] = weapon;
 	}
 }
 
@@ -286,6 +233,15 @@ Radar *godot::GlobalManager::get_radar_from_id(String id) {
 
 	Radar *original = radarRegistry[id];
 	return original ? original->clone() : nullptr;
+}
+
+Weapon *godot::GlobalManager::get_weapon_from_id(String id) {
+	if (!weaponRegistry.has(id)){
+		UtilityFunctions::print("Error: Weapon ID not found: ", id);
+		return nullptr;
+	}
+
+	return weaponRegistry[id];
 }
 
 void godot::GlobalManager::register_active_vehicle(Vehicle *p_vehicle) {

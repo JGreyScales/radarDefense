@@ -199,6 +199,10 @@ MapIcon *godot::Vehicle::get_move_waypoint() {
 	return this->moveWaypoint;
 }
 
+uint16_t godot::Vehicle::get_weight() {
+	return this->weight;
+}
+
 void godot::Vehicle::set_id(String id) {
 	this->id = id;
 }
@@ -251,4 +255,8 @@ void godot::Vehicle::set_move_waypoint(MapIcon *waypoint) {
 		this->moveWaypoint->queue_free();
 	}
 	this->moveWaypoint = waypoint;
+}
+
+void godot::Vehicle::set_weight(uint16_t value) {
+    this->weight = value;
 }

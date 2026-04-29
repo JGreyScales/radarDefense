@@ -4,6 +4,7 @@
 #include "Driveable.h"
 #include "SearchRadar.h"
 #include "targetListButton.h"
+#include "objectCreationList.h"
 
 #include <godot_cpp/classes/node2d.hpp>
 #include <godot_cpp/classes/label.hpp>
@@ -40,12 +41,12 @@ private:
     static GlobalManager *singleton;
     static HashMap<String, Vehicle*> vehicleRegistry;
     static HashMap<String, Radar*> radarRegistry;
+    static HashMap<String, Weapon*> weaponRegistry;
     static Vector<Vehicle*> activeVehicles;
     static Vehicle* selected_vehicle;
     static Vehicle* selectedTargetVehicle;
 
-    void register_vehicle_into_registry(Vehicle* vehicle);
-    void register_radar_into_registry(Radar* radar);
+
     static bool should_ui_element_be_visible(String text);
 
 protected:
@@ -67,6 +68,11 @@ public:
     static Vector<Vehicle*> get_active_vehicles();
     static Vehicle* get_vehicle_from_id(String id);
     static Radar* get_radar_from_id(String id);
+    static Weapon* get_weapon_from_id(String id);
+
+    static void register_vehicle_into_registry(Vehicle* vehicle);
+    static void register_radar_into_registry(Radar* radar);
+    static void register_weapon_into_registry(Weapon* weapon);
 
     static void register_active_vehicle(Vehicle* p_vehicle);
     static void unregister_active_vehicle(Vehicle* p_vehicle);

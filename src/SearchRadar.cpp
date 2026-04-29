@@ -9,8 +9,8 @@ void godot::SearchRadar::_bind_methods() {
 }
 
 // search radars dont really pick targets
-Vehicle *godot::SearchRadar::select_best_target(TypedArray<Vehicle> possibleTargets) {
-	return nullptr;
+void SearchRadar::select_best_target(TypedArray<Vehicle*> _, Vehicle* __) {
+	return;
 }
 
 Radar *godot::SearchRadar::clone() {

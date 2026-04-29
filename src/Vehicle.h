@@ -1,4 +1,6 @@
 #ifndef VEHICLE_H
+#pragma once
+
 #define VEHICLE_H
 
 #include "MapIcon.h"
@@ -26,6 +28,9 @@ protected:
     static void _bind_methods();
 
 private:
+
+    uint16_t weight;
+
     // godot systems
     Area2D* hitbox;
     CollisionShape2D* hitbox_shape;
@@ -42,6 +47,7 @@ private:
     uint8_t irSignature;
     uint8_t lineOfSightDetection;
     uint8_t rwrDetection;
+    
 
     Vector<Vehicle*> beingTrackedBy;
     MapIcon* moveWaypoint;
@@ -69,6 +75,7 @@ public:
     uint8_t get_rwr_detection();
     Vector<Vehicle*> get_being_tracked_by();
     MapIcon* get_move_waypoint();
+    uint16_t get_weight();
 
     void set_id(String id);
     void set_radar(Radar* radar);
@@ -81,6 +88,8 @@ public:
     void add_being_tracked_by(Vehicle* tracked_by);
     void remove_being_tracked_by(Vehicle* tracked_by);
     void set_move_waypoint(MapIcon* waypoint);
+    void set_weight(uint16_t value);
+
     
     virtual void tick(float deltaTime) = 0;
     virtual void UItick(float deltaTime) = 0;

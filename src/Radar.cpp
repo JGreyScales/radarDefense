@@ -79,6 +79,9 @@ godot::Radar::Radar() {
 	set_z_index(4096);
 	set_collision_layer(4); // radars sit on 4
 	set_collision_mask(2); // vehicles sit on 2
+
+	this->target = nullptr;
+	this->launchTarget = nullptr;
 }
 
 godot::Radar::~Radar() {
@@ -123,13 +126,14 @@ void Radar::scan_chunk(Vehicle *parent, double delta) {
     std::deque<TrackedFrame> &history = *get_target_history();
     std::unordered_set<Vehicle *> &p_map = *get_presence_map();
     Vector3 parentPos = Vector3(parent->get_x(), parent->get_y(), parent->get_z());
-    float maxRange = (float)this->get_maximum_range();
+    float maxRange = (float)this->get_maximum_range() * GODOT_UNIT_TO_KM;
 
     for (std::deque<TrackedFrame>::iterator it = history.begin(); it != history.end(); ) {
         Vehicle* target = it->target;
         bool should_remove = false;
 
-        if (target == nullptr) {
+		//
+        if (target == nullptr || target->get_speed() < MINIMUM_SPEEDGATE_GODOT_UNITS) {
             should_remove = true;
         } else {
             Vector3 targetPos = Vector3(target->get_x(), target->get_y(), target->get_z());
@@ -188,7 +192,7 @@ void Radar::scan_chunk(Vehicle *parent, double delta) {
 
         if (v && v != parent) {
             float detectionScore = this->calculate_detection_score(parent, v);
-            if (detectionScore > 0.2f) {
+            if (detectionScore > DETECTION_SCORE_REQUIRED_FOR_MATCH) {
                 this->add_target_entry(v);
                 v->add_being_tracked_by(parent);
             } else if (detectionScore > 0.08f && (UtilityFunctions::randi() % 10) == 1) {
@@ -344,8 +348,16 @@ CollisionPolygon2D *godot::Radar::get_radar_collision_object() {
 	return this->radarCollisionObject;
 }
 
-Vehicle *godot::Radar::get_data_link_child() {
-	return this->dataLinkChild;
+Vehicle *godot::Radar::get_target() {
+	return this->target;
+}
+
+Vehicle *godot::Radar::get_launch_target() {
+	return this->launchTarget;
+}
+
+Radar *godot::Radar::get_host_radar() {
+	return this->hostRadar;
 }
 
 void godot::Radar::set_id(String id) {
@@ -394,9 +406,6 @@ void godot::Radar::set_search_area(uint8_t newSearchArea) {
 	this->searchArea = newSearchArea;
 }
 
-void godot::Radar::set_data_link_child(Vehicle *child) {
-	this->dataLinkChild = child;
-}
 
 void godot::Radar::clear_radar_points() {
 	this->radarConePoints.clear();
@@ -408,4 +417,16 @@ PackedVector2Array godot::Radar::get_radar_points() {
 
 void godot::Radar::add_radar_point(Vector2 point) {
 	this->radarConePoints.append(point);
+}
+
+void Radar::set_target(Vehicle *target) {
+    this->target = target;
+}
+
+void Radar::set_launch_target(Vehicle *target) {
+    this->launchTarget = target;
+}
+
+void godot::Radar::set_host_radar(Radar *host) {
+	this->hostRadar = host;
 }

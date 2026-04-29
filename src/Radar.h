@@ -24,6 +24,9 @@
 #include <godot_cpp/classes/window.hpp>
 #include <godot_cpp/classes/time.hpp>
 
+#define DETECTION_SCORE_REQUIRED_FOR_MATCH 0.2f
+#define MINIMUM_SPEEDGATE_GODOT_UNITS 5.0f
+
 namespace godot {
     
 class Vehicle;
@@ -52,7 +55,6 @@ private:
     uint8_t searchelevation;
     double curX;
     uint8_t scanChankSize;
-    Vehicle* dataLinkChild;
 
     // linger target stuff
     float lingerTime;
@@ -62,6 +64,11 @@ private:
     // godot stuff
     PackedVector2Array radarConePoints;
     CollisionPolygon2D* radarCollisionObject;
+
+    Vehicle* launchTarget;
+    Vehicle* target;
+
+    Radar* hostRadar;
 public:
     Radar();
     ~Radar();
@@ -94,7 +101,9 @@ public:
     std::unordered_set<Vehicle*>* get_presence_map();
     PackedVector2Array get_radar_points();
     CollisionPolygon2D* get_radar_collision_object();
-    Vehicle* get_data_link_child();
+    Vehicle* get_target();
+    Vehicle* get_launch_target();
+    Radar* get_host_radar();
 
 
 
@@ -109,14 +118,16 @@ public:
     void set_cur_x(double newX);
     void set_scan_chunk_size(uint8_t newSize);
     void set_search_area(uint8_t newSearchArea);
-    void set_data_link_child(Vehicle* child);
+    void set_target(Vehicle* target);
+    void set_launch_target(Vehicle* target);
+    void set_host_radar(Radar* host);
 
     void clear_radar_points();
     void add_radar_point(Vector2);
 
     
 
-    virtual Vehicle* select_best_target(TypedArray<Vehicle>) = 0;
+    virtual void select_best_target(TypedArray<Vehicle*>, Vehicle*) = 0;
     virtual Radar* clone() = 0;
 
 };

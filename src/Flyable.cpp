@@ -53,6 +53,11 @@ void Flyable::_bind_methods() {
 }
 
 Flyable::Flyable() {
+    this->prevPitchError = 0;
+    this->yawIntegral = 0;
+    this->prevPitchError = 0;
+    this->pitchIntegral = 0;
+    this->lastKnownTargetPos = Vector3(0, 0, 0);
 }
 
 Flyable::~Flyable() {}
@@ -79,10 +84,6 @@ void Flyable::set_fuel_weight_per_L(float value) {
 
 void Flyable::set_fuel_flow_rate_L(float value) {
     this->fuelFlowRateL = value;
-}
-
-void Flyable::set_weight(uint16_t value) {
-    this->weight = value;
 }
 
 void Flyable::set_wep_timer(uint8_t value) {
@@ -117,7 +118,7 @@ void Flyable::set_PID_int_term(float value) {
     this->PID_int_term = value;
 }
 
-void Flyable::set_PID_der_term_limit(float value) {
+void Flyable::set_PID_int_term_limit(float value) {
     this->PID_int_term_limit = value;
 }
 
@@ -189,10 +190,6 @@ float Flyable::get_fuel_float_rate_L() {
 	return this->fuelFlowRateL;
 }
 
-uint16_t Flyable::get_weight() {
-	return this->weight;
-}
-
 uint8_t Flyable::get_wep_timer() {
 	return this->wepTimer;
 }
@@ -225,7 +222,7 @@ float Flyable::get_PID_int_term() {
 	return this->PID_int_term;
 }
 
-float Flyable::get_PID_der_term_limit() {
+float Flyable::get_PID_int_term_limit() {
 	return this->PID_int_term_limit;
 }
 
@@ -299,14 +296,14 @@ void Flyable::tick(float deltaTime) {
     float effectiveMaxSpeed = get_max_speed() * altitudePenalty;
 
     if (hasFuel) {
-        float acceleration = calculateImpulseAcceleration((float)weight, engineThrustOutput);
+        float acceleration = calculateImpulseAcceleration((float)this->get_weight(), engineThrustOutput);
         if (currentSpeed < effectiveMaxSpeed) {
             currentSpeed += acceleration * deltaTime;
             if (currentSpeed > effectiveMaxSpeed) currentSpeed = effectiveMaxSpeed;
         }
 
         float fuelConsumption = this->fuelFlowRateL * deltaTime;
-        this->weight -= fuelConsumption * this->fuelWeightPerL;
+        this->set_weight(this->get_weight() - (fuelConsumption * this->fuelWeightPerL));
         fuelTime -= deltaTime; 
     } else {
         if (currentSpeed > 0.0f) {
@@ -407,7 +404,7 @@ Flyable *Flyable::clone() {
     returnValue->set_PID_prop_term(this->get_PID_prop_term());
     returnValue->set_PID_int_term(this->get_PID_int_term());
     returnValue->set_PID_der_term(this->get_PID_der_term());
-    returnValue->set_PID_der_term_limit(this->get_PID_der_term_limit());
+    returnValue->set_PID_int_term_limit(this->get_PID_int_term_limit());
     returnValue->set_integral_error_sum(this->get_integral_error_sum());
     returnValue->set_target_elevation(this->get_target_elevation());
 
@@ -506,7 +503,14 @@ float Flyable::calculateImpulseAcceleration(float mass, float thrust) {
 }
 
 Vector2 Flyable::calculateOptimalFlightPath(MapIcon* target, float deltaTime) {
-    if (!target || deltaTime <= 0.0f) return Vector2(0, 0);
+    Vector3 targetPos;
+    if (target) {
+        targetPos = Vector3(target->get_x(), target->get_y(), target->get_z());
+        lastKnownTargetPos = targetPos; 
+    } else {
+        UtilityFunctions::print("Missile has lost target, IOG state entered");
+        targetPos = lastKnownTargetPos;
+    }
 
     float currentSpeed = (float)get_speed();
     float optSpeed = (float)optimalTurnSpeed;
@@ -525,9 +529,9 @@ Vector2 Flyable::calculateOptimalFlightPath(MapIcon* target, float deltaTime) {
     float maxTurnStep = Math::deg_to_rad((float)turnRate * turnAuthority) * deltaTime;
 
     // --- Error Calculation ---
-    float dx = target->get_x() - get_x();
-    float dy = target->get_y() - get_y();
-    float dz = target->get_z() - get_z();
+    float dx = targetPos.x - get_x();
+    float dy = targetPos.y - get_y();
+    float dz = targetPos.z - get_z();
     float groundDist = Math::sqrt(dx * dx + dy * dy);
 
     // proxy fuze is in meters
@@ -544,7 +548,7 @@ Vector2 Flyable::calculateOptimalFlightPath(MapIcon* target, float deltaTime) {
         bool closeRange = (groundDist < (6 * KM_TO_GODOT_UNIT));
 
         if (!closeRange && !significantlyBelow) {
-            dz = (target->get_z() + desiredRelativeHeight) - get_z();
+            dz = (targetPos.z + desiredRelativeHeight) - get_z();
         }
     }
 
@@ -585,6 +589,10 @@ void Flyable::calculateCollisionCourseMarker() {
     }
 
 	if (!this->get_move_waypoint()){
+        if (this->interceptionTarget){
+            memdelete(this->interceptionTarget);
+        }
+        this->interceptionTarget = nullptr;
         return;
     }
 

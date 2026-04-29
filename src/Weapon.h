@@ -19,6 +19,7 @@ private:
     int effectiveRange;
 
 public:
+    Weapon();
     Weapon(String id);
     ~Weapon();
 

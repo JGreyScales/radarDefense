@@ -25,7 +25,7 @@ private:
     float fuelTime;
     float fuelFlowRateL;
     float fuelWeightPerL;
-    uint16_t weight;
+    
     
 
     bool wepping;
@@ -54,6 +54,8 @@ private:
     float prevPitchError;
     float pitchIntegral;
 
+    Vector3 lastKnownTargetPos;
+
 
     uint8_t chaffCount;
     uint8_t flareCount;
@@ -71,7 +73,6 @@ public:
     void set_fuel_time(float value);
     void set_fuel_weight_per_L(float value);
     void set_fuel_flow_rate_L(float value);
-    void set_weight(uint16_t value);
 
     void set_wep_timer(uint8_t value);
     void set_wep_overload(uint8_t value);
@@ -83,7 +84,7 @@ public:
 
     void set_PID_prop_term(float value);
     void set_PID_int_term(float value);
-    void set_PID_der_term_limit(float value);
+    void set_PID_int_term_limit(float value);
     void set_PID_der_term(float value);
     void set_integral_error_sum(float value);
     void set_target_elevation(float value);
@@ -107,7 +108,7 @@ public:
     float get_fuel_time();
     float get_fuel_weight_per_L();
     float get_fuel_float_rate_L();
-    uint16_t get_weight();
+  
 
     uint8_t get_wep_timer();
     uint8_t get_wep_overload();
@@ -119,7 +120,7 @@ public:
 
     float get_PID_prop_term();
     float get_PID_int_term();
-    float get_PID_der_term_limit();
+    float get_PID_int_term_limit();
     float get_PID_der_term();
     float get_integral_error_sum();
     float get_target_elevation();
