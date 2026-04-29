@@ -14,7 +14,7 @@ protected:
     static void _bind_methods();
 
 public:
-    void select_best_target(TypedArray<Vehicle*>, Vehicle*) override;
+    void select_best_target(TypedArray<Vehicle>, Vehicle*) override;
     Radar* clone();
 
 };

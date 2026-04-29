@@ -18,6 +18,7 @@ using namespace godot;
 static GlobalManager* _global_manager = nullptr;
 HashMap<String, Vehicle*> GlobalManager::vehicleRegistry;
 HashMap<String, Radar*> GlobalManager::radarRegistry;
+HashMap<String, Weapon*> GlobalManager::weaponRegistry;
 
 void initialize_gdextension_types(ModuleInitializationLevel p_level)
 {
@@ -33,6 +34,10 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level)
 	GDREGISTER_CLASS(Flyable);
 	GDREGISTER_CLASS(MyCamera);
 	GDREGISTER_CLASS(TargetListButton);
+
+	GDREGISTER_CLASS(Loadout);
+	GDREGISTER_CLASS(HardPoint);
+	GDREGISTER_CLASS(Weapon);
 
 
 	_global_manager = memnew(GlobalManager);

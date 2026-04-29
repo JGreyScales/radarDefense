@@ -1,7 +1,7 @@
 #include "activeRadar.h"
 #include "Vehicle.h"
 
-void activeRadar::select_best_target(TypedArray<Vehicle *> possibleTargets, Vehicle *parent) {
+void activeRadar::select_best_target(TypedArray<Vehicle> possibleTargets, Vehicle *parent) {
 	std::unordered_set<Vehicle*>* host_radar_targets = this->get_host_radar()->get_presence_map();
     auto data_link_target = host_radar_targets->find(this->get_launch_target());
 

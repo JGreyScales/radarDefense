@@ -127,7 +127,7 @@ public:
 
     
 
-    virtual void select_best_target(TypedArray<Vehicle*>, Vehicle*) = 0;
+    virtual void select_best_target(TypedArray<Vehicle>, Vehicle*) = 0;
     virtual Radar* clone() = 0;
 
 };

@@ -4,6 +4,7 @@
 #define VEHICLE_H
 
 #include "MapIcon.h"
+#include "Loadout.h"
 
 #include <godot_cpp/classes/area2d.hpp> 
 #include <godot_cpp/classes/collision_shape2d.hpp>
@@ -15,11 +16,9 @@
 
 
 namespace godot {
-
     class Radar;
     class GlobalManager;
-    // note this is a partially virtual class
-    // therefore it will not appear in godot menus
+
 class Vehicle : public MapIcon {
     GDCLASS(Vehicle, MapIcon)
 

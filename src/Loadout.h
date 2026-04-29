@@ -1,4 +1,5 @@
 #ifndef LOADOUT_H
+#pragma once
 #define LOADOUT_H
 
 #include <godot_cpp/classes/sprite2d.hpp>
@@ -9,7 +10,12 @@
 namespace godot {
 class Vehicle;
 
-class Loadout {
+class Loadout: public Object {
+    GDCLASS(Loadout, Object);
+
+protected:
+    static void _bind_methods();
+    
 private:
 	/* data */
     Vector<HardPoint*> hardPoints;
@@ -17,9 +23,10 @@ private:
     String id;
 public:
 	Loadout(/* args */);
+    Loadout(const Loadout &p_other);
 	~Loadout();
 
-
+    void copy_from(const Loadout &p_other);
     void calculateLoadoutWeight();
     int16_t getLoadoutWeight();
     Weapon* getWeaponAtIndex(int index);

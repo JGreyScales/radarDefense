@@ -1,5 +1,7 @@
 #include "objectCreationList.h"
 #include "Globals.h"
+#include "Flyable.h"
+
 
 void objectCreationList::registry_setup() {
     objectCreationList::AIM_54_A();

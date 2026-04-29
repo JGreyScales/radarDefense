@@ -1,6 +1,7 @@
 #include "Vehicle.h"
 #include "Globals.h"
 #include "Radar.h"
+#include "Loadout.h"
 
 using namespace godot;
 
@@ -266,6 +267,6 @@ void godot::Vehicle::set_weight(uint16_t value) {
     this->weight = value;
 }
 
-void godot::Vehicle::set_loadout(Loadout loadout) {
-	this->loadout = loadout;
+void Vehicle::set_loadout(Loadout p_loadout) {
+    this->loadout.copy_from(p_loadout);
 }

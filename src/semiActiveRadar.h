@@ -7,7 +7,7 @@ class semiActiveRadar : public Radar {
     GDCLASS(semiActiveRadar, Radar)
 public:
 
-    void select_best_target(TypedArray<Vehicle*>, Vehicle*) override;
+    void select_best_target(TypedArray<Vehicle>, Vehicle*) override;
     semiActiveRadar();
     ~semiActiveRadar();
 

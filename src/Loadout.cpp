@@ -1,10 +1,41 @@
 #include "Loadout.h"
+#include "Weapon.h"
 
+void Loadout::_bind_methods() {
+    // Binding the weight calculation and getter
+    ClassDB::bind_method(D_METHOD("calculate_loadout_weight"), &Loadout::calculateLoadoutWeight);
+    ClassDB::bind_method(D_METHOD("get_loadout_weight"), &Loadout::getLoadoutWeight);
+
+    // Binding Weapon/Hardpoint interaction
+    // NOTE: For these to work in GDScript, 'Weapon' and 'HardPoint' must also be GDCLASS-enabled
+    ClassDB::bind_method(D_METHOD("get_weapon_at_index", "index"), &Loadout::getWeaponAtIndex);
+    ClassDB::bind_method(D_METHOD("set_weapon_array_size", "size"), &Loadout::setWeaponArraySize);
+    ClassDB::bind_method(D_METHOD("set_weapon_at_index", "index", "weapon"), &Loadout::setWeaponAtIndex);
+    ClassDB::bind_method(D_METHOD("set_hardpoint_at_index", "index", "hardpoint"), &Loadout::setHardpointAtIndex);
+    
+    // Binding the logic method
+    ClassDB::bind_method(D_METHOD("calculate_best_weapon_to_engage_with", "target"), &Loadout::calculateBestWeaponToEngageWith);
+
+    // If you want totalLoadoutWeight to appear as a property in Godot:
+    ClassDB::add_property("Loadout", PropertyInfo(Variant::INT, "total_loadout_weight"), "set_weapon_array_size", "get_loadout_weight");
+}
 godot::Loadout::Loadout() {
 	this->hardPoints = Vector<HardPoint *>();
 }
 
+Loadout::Loadout(const Loadout &p_other) : Object() {
+    copy_from(p_other);
+}
+
 godot::Loadout::~Loadout() {
+}
+
+
+
+void Loadout::copy_from(const Loadout &p_other) {
+    this->hardPoints = p_other.hardPoints;
+    this->totalLoadoutWeight = p_other.totalLoadoutWeight;
+    this->id = p_other.id;
 }
 
 void godot::Loadout::calculateLoadoutWeight() {
