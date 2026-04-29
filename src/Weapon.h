@@ -27,15 +27,18 @@ public:
     String getName();
     String getID();
     uint8_t getDropWeight();
-    uint8_t getCapcity();
+    uint8_t getCapacity();
     
     void setName(String name);
     void setID(String id);
     void setDropWeight(uint8_t dropWeight);
+    void setCapacity(uint8_t value);
 
 
     int getMaximumRange(Flyable* self);
-    int getEffectiveRange(Flyable* self);;
+    int getEffectiveRange(Flyable* self);
+
+    Weapon* clone();
 };
 
 

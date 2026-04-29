@@ -123,6 +123,7 @@ Vehicle::Vehicle() {
 }
 
 Vehicle::~Vehicle() {
+
 }
 
 void godot::Vehicle::_on_hitbox_input_event(godot::Node *viewport, godot::Ref<godot::InputEvent> event, int32_t shape_idx) {
@@ -203,6 +204,10 @@ uint16_t godot::Vehicle::get_weight() {
 	return this->weight;
 }
 
+Loadout *godot::Vehicle::get_loadout() {
+	return &(this->loadout);
+}
+
 void godot::Vehicle::set_id(String id) {
 	this->id = id;
 }
@@ -259,4 +264,8 @@ void godot::Vehicle::set_move_waypoint(MapIcon *waypoint) {
 
 void godot::Vehicle::set_weight(uint16_t value) {
     this->weight = value;
+}
+
+void godot::Vehicle::set_loadout(Loadout loadout) {
+	this->loadout = loadout;
 }

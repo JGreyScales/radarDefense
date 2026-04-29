@@ -40,7 +40,7 @@ private:
 
     // Pilot
     Radar* radar;
-    // Loadout
+    Loadout loadout;
 
     uint16_t maxSpeed;
     uint8_t radarCrossSection;
@@ -76,6 +76,7 @@ public:
     Vector<Vehicle*> get_being_tracked_by();
     MapIcon* get_move_waypoint();
     uint16_t get_weight();
+    Loadout* get_loadout();
 
     void set_id(String id);
     void set_radar(Radar* radar);
@@ -89,6 +90,7 @@ public:
     void remove_being_tracked_by(Vehicle* tracked_by);
     void set_move_waypoint(MapIcon* waypoint);
     void set_weight(uint16_t value);
+    void set_loadout(Loadout);
 
     
     virtual void tick(float deltaTime) = 0;

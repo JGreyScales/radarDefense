@@ -14,14 +14,20 @@ private:
 	/* data */
     Vector<HardPoint*> hardPoints;
     int16_t totalLoadoutWeight;
+    String id;
 public:
 	Loadout(/* args */);
 	~Loadout();
 
+
     void calculateLoadoutWeight();
     int16_t getLoadoutWeight();
     Weapon* getWeaponAtIndex(int index);
+    void setWeaponArraySize(int index);
+    void setWeaponAtIndex(int index, Weapon* weapon);
+    void setHardpointAtIndex(int index, HardPoint* hardpoint);
     HardPoint* calculateBestWeaponToEngageWith(Vehicle* target);
+
 };
 } //namespace godot
 #endif

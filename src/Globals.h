@@ -1,6 +1,4 @@
-#ifndef GLOBAL_MANAGER_HPP
-#define GLOBAL_MANAGER_HPP
-
+#pragma once
 #include "Driveable.h"
 #include "SearchRadar.h"
 #include "targetListButton.h"
@@ -69,7 +67,7 @@ public:
     static Vehicle* get_vehicle_from_id(String id);
     static Radar* get_radar_from_id(String id);
     static Weapon* get_weapon_from_id(String id);
-
+    
     static void register_vehicle_into_registry(Vehicle* vehicle);
     static void register_radar_into_registry(Radar* radar);
     static void register_weapon_into_registry(Weapon* weapon);
@@ -90,5 +88,3 @@ public:
 };
 
 }
-
-#endif

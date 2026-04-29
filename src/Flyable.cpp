@@ -378,6 +378,8 @@ Flyable *Flyable::clone() {
 	returnValue->set_ir_signature(this->get_ir_signature());
 	returnValue->set_line_of_sight_detection(this->get_line_of_sight_detection());
 	returnValue->set_rwr_detection(this->get_rwr_detection());
+    // Loadout::clone(this->get_loadout())
+    // returnValue->set_loadout()
 
     // Flyable Core Stats
     returnValue->set_despawn_if_cant_hit(this->get_despawn_if_cant_hit());

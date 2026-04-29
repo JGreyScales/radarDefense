@@ -7,7 +7,7 @@ using namespace godot;
 class HardPoint
 {
 private:
-    Weapon* equippedWapon;
+    Weapon* equippedWeapon;
     Vector<Weapon*> options;
 
 public:
@@ -15,6 +15,7 @@ public:
     ~HardPoint();
 
     Vector<String> getWeaponOptionNames();
+    void addWeaponOption(Weapon*);
     Weapon* getEquippedWeapon();
     void setEquippedWeapon(Weapon*);
     

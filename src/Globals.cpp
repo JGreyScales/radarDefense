@@ -114,33 +114,25 @@ void godot::GlobalManager::_on_vehicle_selected(Vehicle* p_vehicle_obj) {
 void GlobalManager::setup_initial_scene() {
 	UtilityFunctions::print("Creating registries....");
 
-	// this is where vehicles will be created
-
-	// // radars
-	// this->register_radar_into_registry(createDemoRadar());
-	// this->register_radar_into_registry(createDemoFrontRadar());
-
-	// // driveables
-	// this->register_vehicle_into_registry(createDemoRadarTruck());
-	// this->register_vehicle_into_registry(createDemoFrontRadarTruck());
-
 	UtilityFunctions::print("GlobalManager: Scene is ready. Spawning units...");
+	objectCreationList::registry_setup();
 
-	Vehicle *demoVehicle = GlobalManager::get_vehicle_from_id("demo_radar_truck");
-	demoVehicle->set_x(50);
-	demoVehicle->set_y(50);
-	this->add_child(demoVehicle);
 
-	Vehicle *demoVehiclex = GlobalManager::get_vehicle_from_id("demo_front_radar_truck");
-	demoVehiclex->set_x(200);
-	demoVehiclex->set_y(200);
-	this->add_child(demoVehiclex);
+	// Vehicle *demoVehicle = GlobalManager::get_vehicle_from_id("demo_radar_truck");
+	// demoVehicle->set_x(50);
+	// demoVehicle->set_y(50);
+	// this->add_child(demoVehicle);
 
-	Vehicle *demoVehicley = GlobalManager::get_vehicle_from_id("demo_radar_truck");
-	demoVehicley->set_x(50);
-	demoVehicley->set_y(300);
-	this->add_child(demoVehicley);
-	UtilityFunctions::print("Vehicle spawned and added to the scene!");
+	// Vehicle *demoVehiclex = GlobalManager::get_vehicle_from_id("demo_front_radar_truck");
+	// demoVehiclex->set_x(200);
+	// demoVehiclex->set_y(200);
+	// this->add_child(demoVehiclex);
+
+	// Vehicle *demoVehicley = GlobalManager::get_vehicle_from_id("demo_radar_truck");
+	// demoVehicley->set_x(50);
+	// demoVehicley->set_y(300);
+	// this->add_child(demoVehicley);
+	// UtilityFunctions::print("Vehicle spawned and added to the scene!");
 }
 
 GlobalManager *GlobalManager::singleton = nullptr;
@@ -241,8 +233,9 @@ Weapon *godot::GlobalManager::get_weapon_from_id(String id) {
 		return nullptr;
 	}
 
-	return weaponRegistry[id];
+	return weaponRegistry[id]->clone();
 }
+
 
 void godot::GlobalManager::register_active_vehicle(Vehicle *p_vehicle) {
 	GlobalManager::activeVehicles.push_back(p_vehicle);
