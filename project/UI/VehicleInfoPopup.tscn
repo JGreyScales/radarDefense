@@ -38,5 +38,17 @@ text = "X,Y,Z:"
 [node name="xyzValue" type="Label" parent="PanelContainer/MarginContainer/GridContainer" unique_id=310298747]
 layout_mode = 2
 
+[node name="WeightTitle" type="Label" parent="PanelContainer/MarginContainer/GridContainer" unique_id=1320967421]
+layout_mode = 2
+
+[node name="WeightValue" type="Label" parent="PanelContainer/MarginContainer/GridContainer" unique_id=339687718]
+layout_mode = 2
+
+[node name="ThrustDeltaTitle" type="Label" parent="PanelContainer/MarginContainer/GridContainer" unique_id=1171191922]
+layout_mode = 2
+
+[node name="ThrustDeltaValue" type="Label" parent="PanelContainer/MarginContainer/GridContainer" unique_id=1274352005]
+layout_mode = 2
+
 [node name="targetList" type="GridContainer" parent="PanelContainer/MarginContainer/GridContainer" unique_id=1211396441]
 layout_mode = 2
