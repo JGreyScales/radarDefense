@@ -35,6 +35,10 @@ private:
     static Label* nameValue;
     static Label* xyzTitle;
     static Label* xyzValue;
+    static Label* weightTitle;
+    static Label* weightValue;
+    static Label* thrustDeltaTitle;
+    static Label* thrustDeltaValue;
     static GridContainer* targetList;
 
     static Ref<ButtonGroup> targetListGroup;
@@ -84,6 +88,8 @@ public:
 
     static void set_ui_name_value(String name);
     static void set_ui_xyz_value(String xyz);
+    static void set_ui_weight_value(String value);
+    static void set_ui_thrust_delta_value(String value);
     static void add_target_to_list(Vehicle* target);
     static void clear_target_list();
     static void remove_target_from_list(Vehicle *target);

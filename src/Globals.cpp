@@ -3,6 +3,8 @@
 #include "MyCamera.h"
 
 #include <godot_cpp/variant/utility_functions.hpp>
+#include <godot_cpp/variant/string.hpp>
+
 Vector<Vehicle *> GlobalManager::activeVehicles;
 godot::Vehicle *godot::GlobalManager::selected_vehicle = nullptr;
 Vehicle* GlobalManager::selectedTargetVehicle = nullptr;
@@ -122,23 +124,6 @@ void GlobalManager::setup_initial_scene() {
 
 	UtilityFunctions::print("GlobalManager: Scene is ready. Spawning units...");
 	objectCreationList::registry_setup();
-
-
-	// Vehicle *demoVehicle = GlobalManager::get_vehicle_from_id("demo_radar_truck");
-	// demoVehicle->set_x(50);
-	// demoVehicle->set_y(50);
-	// this->add_child(demoVehicle);
-
-	// Vehicle *demoVehiclex = GlobalManager::get_vehicle_from_id("demo_front_radar_truck");
-	// demoVehiclex->set_x(200);
-	// demoVehiclex->set_y(200);
-	// this->add_child(demoVehiclex);
-
-	// Vehicle *demoVehicley = GlobalManager::get_vehicle_from_id("demo_radar_truck");
-	// demoVehicley->set_x(50);
-	// demoVehicley->set_y(300);
-	// this->add_child(demoVehicley);
-	// UtilityFunctions::print("Vehicle spawned and added to the scene!");
 
 	UtilityFunctions::print("Spawning vehicles");
 
@@ -363,6 +348,37 @@ void godot::GlobalManager::set_ui_xyz_value(String xyz) {
         GlobalManager::xyzTitle->set_visible(true);
         GlobalManager::xyzValue->set_visible(true);
         GlobalManager::xyzValue->set_text(xyz);
+    }
+
+	GlobalManager::resize_ui();
+}
+
+void godot::GlobalManager::set_ui_weight_value(String value) {
+	if (!GlobalManager::weightTitle || !GlobalManager::weightValue) return;
+
+    if (value.is_empty()) {
+        GlobalManager::weightTitle->set_visible(false);
+        GlobalManager::weightValue->set_visible(false);
+    } else {
+        GlobalManager::weightTitle->set_visible(true);
+        GlobalManager::weightValue->set_visible(true);
+		float val = value.to_float() * 0.0004535924f;
+		GlobalManager::weightValue->set_text(String::num(val) + "t");
+    }
+
+	GlobalManager::resize_ui();
+}
+
+void godot::GlobalManager::set_ui_thrust_delta_value(String value) {
+	if (!GlobalManager::thrustDeltaTitle || !GlobalManager::thrustDeltaValue) return;
+
+    if (value.is_empty()) {
+        GlobalManager::thrustDeltaTitle->set_visible(false);
+        GlobalManager::thrustDeltaValue->set_visible(false);
+    } else {
+        GlobalManager::thrustDeltaTitle->set_visible(true);
+        GlobalManager::thrustDeltaValue->set_visible(true);
+		GlobalManager::thrustDeltaValue->set_text(value + "Δ");
     }
 
 	GlobalManager::resize_ui();
