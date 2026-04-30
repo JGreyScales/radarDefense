@@ -16,6 +16,7 @@
 using namespace godot;
 
 static GlobalManager* _global_manager = nullptr;
+static MyCamera* _camera = nullptr;
 HashMap<String, Vehicle*> GlobalManager::vehicleRegistry;
 HashMap<String, Radar*> GlobalManager::radarRegistry;
 HashMap<String, Weapon*> GlobalManager::weaponRegistry;
@@ -50,6 +51,7 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level)
 	UtilityFunctions::print("Loading objects done");
 
 	_global_manager = memnew(GlobalManager);
+
 
 	Engine::get_singleton()->register_singleton("GlobalManager", GlobalManager::get_singleton());
 	UtilityFunctions::randomize();

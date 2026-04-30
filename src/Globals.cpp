@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "Weapon.h"
+#include "MyCamera.h"
 
 #include <godot_cpp/variant/utility_functions.hpp>
 Vector<Vehicle *> GlobalManager::activeVehicles;
@@ -55,6 +56,11 @@ void godot::GlobalManager::_input(const Ref<InputEvent> &event) {
 
 void GlobalManager::_notification(int p_what) {
 	if (p_what == Node::NOTIFICATION_READY) {
+		MyCamera* mainCamera = memnew(MyCamera);
+		mainCamera->set_name("MainCamera");
+		add_child(mainCamera);
+		mainCamera->make_current();
+
 		this->targetListGroup.instantiate();
 		ResourceLoader *rl = ResourceLoader::get_singleton();
 		Ref<PackedScene> scene_res = rl->load("res://UI/VehicleInfoPopup.tscn");
@@ -299,6 +305,10 @@ void godot::GlobalManager::set_selected_vehicle(Vehicle *p_vehicle) {
     if (selected_vehicle != nullptr) {
         std::unordered_set<Vehicle*>* targetListObjects = selected_vehicle->get_radar()->get_presence_map();
         
+		if (MyCamera* cam = MyCamera::getSingleton()) {
+            cam->set_follow_target(selected_vehicle);
+        }
+
         for (Vehicle* target : *targetListObjects) {
             if (target != nullptr) {
                 add_target_to_list(target);
@@ -317,6 +327,9 @@ void godot::GlobalManager::set_selected_vehicle(Vehicle *p_vehicle) {
     } else {
         if (GlobalManager::popupUI) {
             GlobalManager::popupUI->hide();
+        }
+		if (MyCamera* cam = MyCamera::getSingleton()) {
+            cam->set_follow_target(nullptr);
         }
     }
 
