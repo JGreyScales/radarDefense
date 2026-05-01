@@ -370,6 +370,9 @@ void Flyable::tick(float deltaTime) {
 	void Flyable::UItick(float deltaTime) {
 		GlobalManager::set_ui_name_value(this->get_name());
 		GlobalManager::set_ui_xyz_value("X:" + godot::String::num((int)this->get_x()) + " Y:" + godot::String::num((int)this->get_y()) + " Z:" + godot::String::num((int)this->get_z()));
+		GlobalManager::set_ui_weight_value(godot::String::num(this->get_weight(), 2));
+		GlobalManager::set_ui_thrust_delta_value(godot::String::num(this->calculateImpulseAcceleration(this->get_weight(), this->get_engine_thrust_output()), 2));
+		GlobalManager::set_ui_fuel_time_value(godot::String::num(this->get_fuel_time(), 0));
 	}
 
 	void Flyable::move(MapIcon * target, float deltaTime) {

@@ -28,7 +28,7 @@ protected:
 
 private:
 
-    uint16_t weight;
+    float weight;
 
     // godot systems
     Area2D* hitbox;
@@ -74,7 +74,7 @@ public:
     uint8_t get_rwr_detection();
     Vector<Vehicle*> get_being_tracked_by();
     MapIcon* get_move_waypoint();
-    uint16_t get_weight();
+    float get_weight();
     Loadout* get_loadout();
 
     void set_id(String id);
@@ -88,7 +88,7 @@ public:
     void add_being_tracked_by(Vehicle* tracked_by);
     void remove_being_tracked_by(Vehicle* tracked_by);
     void set_move_waypoint(MapIcon* waypoint);
-    void set_weight(uint16_t value);
+    void set_weight(float value);
     void set_loadout(Loadout*);
 
     

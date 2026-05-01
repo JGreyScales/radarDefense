@@ -15,6 +15,13 @@ godot::Label *godot::GlobalManager::nameTitle = nullptr;
 godot::Label *godot::GlobalManager::nameValue = nullptr;
 godot::Label *godot::GlobalManager::xyzTitle = nullptr;
 godot::Label *godot::GlobalManager::xyzValue = nullptr;
+godot::Label *godot::GlobalManager::weightTitle = nullptr;
+godot::Label *godot::GlobalManager::weightValue = nullptr;
+godot::Label *godot::GlobalManager::thrustDeltaTitle = nullptr;
+godot::Label *godot::GlobalManager::thrustDeltaValue = nullptr;
+godot::Label *godot::GlobalManager::fuelTimeTitle = nullptr;
+godot::Label *godot::GlobalManager::fuelTimeValue = nullptr;
+
 godot::GridContainer* godot::GlobalManager::targetList = nullptr;
 
 
@@ -89,11 +96,17 @@ void GlobalManager::_notification(int p_what) {
 				this->nameValue = Object::cast_to<Label>(this->popupUI->get_node_or_null("PanelContainer/MarginContainer/GridContainer/nameValue"));
 				this->xyzTitle  = Object::cast_to<Label>(this->popupUI->get_node_or_null("PanelContainer/MarginContainer/GridContainer/xyzTitle"));
 				this->xyzValue  = Object::cast_to<Label>(this->popupUI->get_node_or_null("PanelContainer/MarginContainer/GridContainer/xyzValue"));
+				this->weightTitle  = Object::cast_to<Label>(this->popupUI->get_node_or_null("PanelContainer/MarginContainer/GridContainer/WeightTitle"));
+				this->weightValue  = Object::cast_to<Label>(this->popupUI->get_node_or_null("PanelContainer/MarginContainer/GridContainer/WeightValue"));
+				this->thrustDeltaTitle  = Object::cast_to<Label>(this->popupUI->get_node_or_null("PanelContainer/MarginContainer/GridContainer/ThrustDeltaTitle"));
+				this->thrustDeltaValue  = Object::cast_to<Label>(this->popupUI->get_node_or_null("PanelContainer/MarginContainer/GridContainer/ThrustDeltaValue"));
+				this->fuelTimeTitle  = Object::cast_to<Label>(this->popupUI->get_node_or_null("PanelContainer/MarginContainer/GridContainer/FuelTimeTitle"));
+				this->fuelTimeValue = Object::cast_to<Label>(this->popupUI->get_node_or_null("PanelContainer/MarginContainer/GridContainer/FuelTimeValue"));
 				
 				
 				this->targetList  = Object::cast_to<GridContainer>(this->popupUI->get_node_or_null("PanelContainer/MarginContainer/GridContainer/targetList"));
 
-				if (!this->nameTitle) {
+				if (!this->fuelTimeValue) {
 					UtilityFunctions::print("ERROR: Could not find UI Labels! Check your NodePaths.");
 				}
 
@@ -363,7 +376,7 @@ void godot::GlobalManager::set_ui_weight_value(String value) {
         GlobalManager::weightTitle->set_visible(true);
         GlobalManager::weightValue->set_visible(true);
 		float val = value.to_float() * 0.0004535924f;
-		GlobalManager::weightValue->set_text(String::num(val) + "t");
+		GlobalManager::weightValue->set_text(String::num(val, 2) + "t");
     }
 
 	GlobalManager::resize_ui();
@@ -378,7 +391,22 @@ void godot::GlobalManager::set_ui_thrust_delta_value(String value) {
     } else {
         GlobalManager::thrustDeltaTitle->set_visible(true);
         GlobalManager::thrustDeltaValue->set_visible(true);
-		GlobalManager::thrustDeltaValue->set_text(value + "Δ");
+		GlobalManager::thrustDeltaValue->set_text(value + "m/s^2");
+    }
+
+	GlobalManager::resize_ui();
+}
+
+void godot::GlobalManager::set_ui_fuel_time_value(String value) {
+	if (!GlobalManager::fuelTimeTitle || !GlobalManager::fuelTimeValue) return;
+
+    if (value.is_empty()) {
+        GlobalManager::fuelTimeTitle->set_visible(false);
+        GlobalManager::fuelTimeValue->set_visible(false);
+    } else {
+        GlobalManager::fuelTimeValue->set_visible(true);
+        GlobalManager::thrustDeltaValue->set_visible(true);
+		GlobalManager::fuelTimeValue->set_text(value + "s");
     }
 
 	GlobalManager::resize_ui();

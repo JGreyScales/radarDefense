@@ -40,14 +40,23 @@ layout_mode = 2
 
 [node name="WeightTitle" type="Label" parent="PanelContainer/MarginContainer/GridContainer" unique_id=1320967421]
 layout_mode = 2
+text = "Weight: "
 
 [node name="WeightValue" type="Label" parent="PanelContainer/MarginContainer/GridContainer" unique_id=339687718]
 layout_mode = 2
 
 [node name="ThrustDeltaTitle" type="Label" parent="PanelContainer/MarginContainer/GridContainer" unique_id=1171191922]
 layout_mode = 2
+text = "ThrustΔ: "
 
 [node name="ThrustDeltaValue" type="Label" parent="PanelContainer/MarginContainer/GridContainer" unique_id=1274352005]
+layout_mode = 2
+
+[node name="FuelTimeTitle" type="Label" parent="PanelContainer/MarginContainer/GridContainer" unique_id=166597528]
+layout_mode = 2
+text = "Fuel Time:"
+
+[node name="FuelTimeValue" type="Label" parent="PanelContainer/MarginContainer/GridContainer" unique_id=281719091]
 layout_mode = 2
 
 [node name="targetList" type="GridContainer" parent="PanelContainer/MarginContainer/GridContainer" unique_id=1211396441]

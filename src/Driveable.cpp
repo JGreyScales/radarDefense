@@ -37,6 +37,7 @@ void Driveable::UItick(float deltaTime) {
 	GlobalManager::set_ui_xyz_value("X:" + godot::String::num((int)this->get_x()) + " Y:" + godot::String::num((int)this->get_y()) + " Z:" + godot::String::num((int)this->get_z()));
 	GlobalManager::set_ui_weight_value("");
 	GlobalManager::set_ui_thrust_delta_value("");
+	GlobalManager::set_ui_fuel_time_value("");
 }
 
 void Driveable::move(MapIcon *target, float deltaTime) {
