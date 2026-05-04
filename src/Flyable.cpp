@@ -285,8 +285,11 @@ void Flyable::tick(float deltaTime) {
 
 	// ROTATION AUTHORITY (PID Suggestion)
 	if (this->get_move_waypoint() != nullptr) {
+		UtilityFunctions::print("Calculating collision course");
 		this->calculateCollisionCourseMarker();
+		UtilityFunctions::print("Calculating flight path");
 		Vector2 angleDeltas = calculateOptimalFlightPath(this->interceptionTarget, deltaTime);
+		UtilityFunctions::print("Done");
 
 		currentYawRad += angleDeltas.x;
 		currentPitchRad += angleDeltas.y;
@@ -620,6 +623,8 @@ void Flyable::tick(float deltaTime) {
 		float clampedYawDelta = Math::clamp(yawOutput, -maxTurnStep, maxTurnStep);
 		float clampedPitchDelta = Math::clamp(pitchOutput, -maxTurnStep, maxTurnStep);
 
+		UtilityFunctions::print(clampedYawDelta);
+		UtilityFunctions::print(clampedPitchDelta);
 		return Vector2(clampedYawDelta, clampedPitchDelta);
 	}
 
@@ -661,4 +666,5 @@ void Flyable::tick(float deltaTime) {
 		this->interceptionTarget->set_x(leadPoint.x);
 		this->interceptionTarget->set_y(leadPoint.y);
 		this->interceptionTarget->set_z(leadPoint.z + gravityDrop);
+		UtilityFunctions::print(leadPoint);
 	}
