@@ -13,6 +13,8 @@
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/classes/grid_container.hpp>
 #include <godot_cpp/classes/button_group.hpp>
+#include <godot_cpp/classes/h_slider.hpp>
+#include <godot_cpp/classes/panel_container.hpp>
 
 #define SCALE_FACTOR 0.01
 
@@ -42,6 +44,11 @@ private:
     static Label* fuelTimeTitle;
     static Label* fuelTimeValue;
     static GridContainer* targetList;
+
+    static PanelContainer* zUnitPopupUI;
+    static Label* altTitle;
+    static Label* AltValue;
+    static HSlider* altSlider;
 
     static Ref<ButtonGroup> targetListGroup;
 

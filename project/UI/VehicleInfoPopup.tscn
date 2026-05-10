@@ -61,3 +61,35 @@ layout_mode = 2
 
 [node name="targetList" type="GridContainer" parent="PanelContainer/MarginContainer/GridContainer" unique_id=1211396441]
 layout_mode = 2
+
+[node name="z_panel_container" type="PanelContainer" parent="." unique_id=1731360653]
+layout_mode = 0
+offset_top = 160.0
+offset_right = 275.0
+offset_bottom = 187.0
+
+[node name="MarginContainer" type="MarginContainer" parent="z_panel_container" unique_id=1471123533]
+layout_mode = 2
+
+[node name="GridContainer" type="GridContainer" parent="z_panel_container/MarginContainer" unique_id=697173678]
+layout_mode = 2
+columns = 4
+
+[node name="altitudeTitle" type="Label" parent="z_panel_container/MarginContainer/GridContainer" unique_id=175913582]
+layout_mode = 2
+text = "Height:"
+
+[node name="HSlider" type="HSlider" parent="z_panel_container/MarginContainer/GridContainer" unique_id=175895179]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.0
+step = 0.5
+ticks_on_borders = true
+
+[node name="altitudeValue" type="Label" parent="z_panel_container/MarginContainer/GridContainer" unique_id=1249874300]
+layout_mode = 2
+
+[node name="altitudeUnit" type="Label" parent="z_panel_container/MarginContainer/GridContainer" unique_id=1078244070]
+layout_mode = 2
+text = "km"

@@ -22,6 +22,15 @@ godot::Label *godot::GlobalManager::thrustDeltaValue = nullptr;
 godot::Label *godot::GlobalManager::fuelTimeTitle = nullptr;
 godot::Label *godot::GlobalManager::fuelTimeValue = nullptr;
 
+godot::PanelContainer *godot::GlobalManager::zUnitPopupUI = nullptr;
+godot::Label *godot::GlobalManager::altTitle = nullptr;
+godot::Label *godot::GlobalManager::AltValue = nullptr;
+godot::HSlider *godot::GlobalManager::altSlider = nullptr;
+
+
+
+
+
 godot::GridContainer* godot::GlobalManager::targetList = nullptr;
 
 
@@ -71,6 +80,9 @@ void GlobalManager::_notification(int p_what) {
 		mainCamera->make_current();
 
 		this->targetListGroup.instantiate();
+
+
+
 		ResourceLoader *rl = ResourceLoader::get_singleton();
 		Ref<PackedScene> scene_res = rl->load("res://UI/VehicleInfoPopup.tscn");
 
@@ -105,6 +117,20 @@ void GlobalManager::_notification(int p_what) {
 				
 				
 				this->targetList  = Object::cast_to<GridContainer>(this->popupUI->get_node_or_null("PanelContainer/MarginContainer/GridContainer/targetList"));
+
+				this->zUnitPopupUI = Object::cast_to<PanelContainer>(this->popupUI->get_node_or_null("z_panel_container"));
+				if (this->zUnitPopupUI){
+					this->altTitle = Object::cast_to<Label>(this->popupUI->get_node_or_null("z_panel_container/MarginContainer/GridContainer/altitudeTitle"));
+					this->AltValue = Object::cast_to<Label>(this->popupUI->get_node_or_null("z_panel_container/MarginContainer/GridContainer/altitudeValue"));
+					this->altSlider = Object::cast_to<HSlider>(this->popupUI->get_node_or_null("z_panel_container/MarginContainer/GridContainer/HSlider"));
+					this->altSlider->set_value(0.0);
+
+				} else {
+					UtilityFunctions::print("ERROR: Could not find zUnit Object");
+				}
+
+
+
 
 				if (!this->fuelTimeValue) {
 					UtilityFunctions::print("ERROR: Could not find UI Labels! Check your NodePaths.");
@@ -510,4 +536,14 @@ void godot::GlobalManager::resize_ui() {
             GlobalManager::popupUI->set_size(min_size);
         }
     }
+
+	if (GlobalManager::zUnitPopupUI) {
+		UtilityFunctions::print("xxx");
+		GlobalManager::zUnitPopupUI->set_anchors_and_offsets_preset(Control::LayoutPreset::PRESET_BOTTOM_LEFT);
+
+		Vector2 z_min_size = GlobalManager::zUnitPopupUI->get_combined_minimum_size();
+		
+		GlobalManager::zUnitPopupUI->set_begin(Vector2(0, -z_min_size.y));
+		GlobalManager::zUnitPopupUI->set_end(Vector2(z_min_size.x, 0));
+	}
 }
