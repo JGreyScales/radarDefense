@@ -269,39 +269,46 @@ uint8_t Flyable::get_flare_count() {
 }
 
 void Flyable::tick(float deltaTime) {
-
 	if (this->get_radar()) {
 		this->get_radar()->scan_chunk(this, deltaTime);
 	}
+
 	if (deltaTime <= 0.0f)
 		return;
 
-	// STATE SYNC
-	float currentSpeed = (float)get_speed();
+	// --- 1. ROTATION AUTHORITY (PID Update) ---
 	float currentYawRad = Math::deg_to_rad(get_direction());
 	float currentPitchRad = Math::deg_to_rad(get_pitch());
-	Vector3 pos = Vector3(get_x(), get_y(), get_z());
-	bool hasFuel = fuelTime > 0;
 
-	// ROTATION AUTHORITY (PID Suggestion)
 	if (this->get_move_waypoint() != nullptr) {
-		UtilityFunctions::print("Calculating collision course");
+		// Calculate the lead point/interception logic
 		this->calculateCollisionCourseMarker();
-		UtilityFunctions::print("Calculating flight path");
-		Vector2 angleDeltas = calculateOptimalFlightPath(this->interceptionTarget, deltaTime);
-		UtilityFunctions::print("Done");
 
+		// Get PID adjustments
+		Vector2 angleDeltas = calculateOptimalFlightPath(this->interceptionTarget, deltaTime);
+
+		// Apply rotation deltas to current orientation
 		currentYawRad += angleDeltas.x;
 		currentPitchRad += angleDeltas.y;
 
+		// FIXED: Hard clamp pitch to +/- 89 degrees to prevent gimbal lock and backward flight
+		currentPitchRad = Math::clamp(currentPitchRad, -1.55f, 1.55f);
+
+		// Sync visual/logical rotation
 		set_direction(Math::rad_to_deg(currentYawRad));
 		set_pitch(Math::rad_to_deg(currentPitchRad));
 	}
 
+	// --- 2. PERFORMANCE & SPEED LOGIC ---
+	float currentSpeed = (float)get_speed();
+	float currentZ = get_z();
+	bool hasFuel = fuelTime > 0;
+
+	// Altitude Performance Penalty (Engine loses power at height)
 	float altitudePenalty = 1.0f;
 	if (maximumAltitude > 0) {
-		float altitudeRatio = Math::clamp(pos.z / (float)maximumAltitude, 0.0f, 1.0f);
-		altitudePenalty = 1.0f - (altitudeRatio * 0.4f); // Power drops at height
+		float altitudeRatio = Math::clamp(currentZ / (float)maximumAltitude, 0.0f, 1.0f);
+		altitudePenalty = 1.0f - (altitudeRatio * 0.4f);
 	}
 	float effectiveMaxSpeed = get_max_speed() * altitudePenalty;
 
@@ -313,358 +320,375 @@ void Flyable::tick(float deltaTime) {
 				currentSpeed = effectiveMaxSpeed;
 		}
 
+		// Fuel Consumption
 		float fuelConsumption = this->fuelFlowRateL * deltaTime;
 		this->set_weight(this->get_weight() - (fuelConsumption * this->fuelWeightPerL));
 		fuelTime -= deltaTime;
 	} else {
+		// Coasting deceleration (9.81m/s is a rough drag proxy here)
 		if (currentSpeed > 0.0f) {
 			currentSpeed -= 9.81f * deltaTime;
 			if (currentSpeed < 0.0f)
 				currentSpeed = 0.0f;
 		}
 	}
-	set_speed((uint16_t)currentSpeed);
 
-	// TRANSLATION (XYZ Authority)
+	// --- 3. TRANSLATION (Physics Authority) ---
+	// FIXED: Velocity is now calculated based on where the plane is Pointing.
+	// This forces the plane to actually fly through a turn rather than instantly flipping velocity.
 	float cosPitch = Math::cos(currentPitchRad);
 	Vector3 velocity;
 	velocity.x = currentSpeed * cosPitch * Math::cos(currentYawRad);
 	velocity.y = currentSpeed * cosPitch * Math::sin(currentYawRad);
 	velocity.z = currentSpeed * Math::sin(currentPitchRad);
 
-	// AERODYNAMICS (Stall/Lift Logic)
-	if (pos.z > 0.0f) {
-		float stallSpeed = (float)optimalTurnSpeed;
+	// FIXED: Hard Ceiling Enforcement
+	// If momentum carries the plane above max altitude, apply a corrective downward force
+	if (maximumAltitude > 0 && currentZ > (float)maximumAltitude) {
+		float overshoot = currentZ - (float)maximumAltitude;
+		velocity.z -= (9.81f + overshoot) * deltaTime; // Force push back down
+	}
 
+	// Aerodynamics (Stall/Lift Logic)
+	if (currentZ > 0.0f) {
+		float stallSpeed = (float)optimalTurnSpeed;
 		if (currentSpeed < stallSpeed) {
 			float liftDeficit = 1.0f - (currentSpeed / stallSpeed);
-
 			float safeLiftCoef = liftCoefficent > 0.001f ? (float)liftCoefficent : 1.0f;
-
-			float gravityEffect = 9.81f * liftDeficit;
-			float fallSpeed = gravityEffect / safeLiftCoef;
-
+			float fallSpeed = (9.81f * liftDeficit) / safeLiftCoef;
 			velocity.z -= fallSpeed;
 		}
 	}
 
-		// FINAL POSITION UPDATE
-		pos += velocity * deltaTime;
+	// --- 4. FINAL POSITION UPDATE ---
+	Vector3 pos = Vector3(get_x(), get_y(), currentZ);
+	pos += velocity * deltaTime;
 
-		if (pos.z < 0.0f) {
-			pos.z = 0.0f;
-			if (!hasFuel)
-				currentSpeed = 0.0f;
-		}
-
-		set_x(pos.x);
-		set_y(pos.y);
-		set_z(pos.z);
-
-
-		if (this->despawnIfCantHitTarget) {
-			this->timeToDestruction -= deltaTime;
-			if (this->timeToDestruction < 0) {
-				memdelete(this);
-			}
-		}
+	// Ground collision
+	if (pos.z < 0.0f) {
+		pos.z = 0.0f;
+		if (!hasFuel)
+			currentSpeed = 0.0f;
 	}
 
-	void Flyable::UItick(float deltaTime) {
-		GlobalManager::set_ui_name_value(this->get_name());
-		GlobalManager::set_ui_xyz_value("X:" + godot::String::num((int)this->get_x()) + " Y:" + godot::String::num((int)this->get_y()) + " Z:" + godot::String::num((int)this->get_z()));
-		GlobalManager::set_ui_weight_value(godot::String::num(this->get_weight(), 2));
-		GlobalManager::set_ui_thrust_delta_value(godot::String::num(this->calculateImpulseAcceleration(this->get_weight(), this->get_engine_thrust_output()), 2));
-		GlobalManager::set_ui_fuel_time_value(godot::String::num(this->get_fuel_time(), 0));
+	// Update state
+	set_speed((uint16_t)currentSpeed);
+	set_x(pos.x);
+	set_y(pos.y);
+	set_z(pos.z);
+
+	// Lifetime management
+	if (this->despawnIfCantHitTarget) {
+		this->timeToDestruction -= deltaTime;
+		if (this->timeToDestruction < 0) {
+			this->queue_free();
+		}
+	}
+}
+
+void Flyable::UItick(float deltaTime) {
+	GlobalManager::set_ui_name_value(this->get_name());
+	GlobalManager::set_ui_xyz_value("X:" + godot::String::num((int)this->get_x()) + " Y:" + godot::String::num((int)this->get_y()) + " Z:" + godot::String::num((int)this->get_z()));
+	GlobalManager::set_ui_weight_value(godot::String::num(this->get_weight(), 2));
+	GlobalManager::set_ui_thrust_delta_value(godot::String::num(this->calculateImpulseAcceleration(this->get_weight(), this->get_engine_thrust_output()), 2));
+	GlobalManager::set_ui_fuel_time_value(godot::String::num(this->get_fuel_time(), 0));
+}
+
+void Flyable::move(MapIcon *target, float deltaTime) {
+}
+
+void Flyable::avoid_incoming() {
+}
+
+void Flyable::engage(Vehicle *target) {
+}
+
+Flyable *Flyable::clone() {
+	UtilityFunctions::print("Cloning vehicle");
+	Flyable *returnValue = memnew(Flyable);
+
+	// map icon
+	// returnValue->set_texture(this->get_texture());
+	// returnValue->set_region_enabled(this->is_region_enabled());
+	// returnValue->set_region_rect(this->get_region_rect());
+	// returnValue->set_centered(this->is_centered());
+	// returnValue->set_visible(true);
+	returnValue->set_name(this->get_name());
+	returnValue->set_path(this->get_path());
+
+	// vehicle
+	returnValue->set_id(this->get_id());
+	UtilityFunctions::print("Cloning Radar");
+
+	returnValue->set_radar(Radar::create_prototype(this->get_radar()->get_id()));
+	returnValue->set_max_speed(this->get_max_speed());
+	returnValue->set_radar_cross_section(this->get_radar_cross_section());
+	returnValue->set_ir_signature(this->get_ir_signature());
+	returnValue->set_line_of_sight_detection(this->get_line_of_sight_detection());
+	returnValue->set_rwr_detection(this->get_rwr_detection());
+	UtilityFunctions::print("Cloning loadout");
+
+	if (this->get_loadout() != nullptr) {
+		returnValue->set_loadout(this->get_loadout()->clone());
+	} else {
+		UtilityFunctions::print("No loadout detected");
+		returnValue->set_loadout(nullptr);
 	}
 
-	void Flyable::move(MapIcon * target, float deltaTime) {
+	// Flyable Core Stats
+	returnValue->set_despawn_if_cant_hit(this->get_despawn_if_cant_hit());
+	returnValue->set_time_to_destruction(this->get_time_to_destruction());
+	returnValue->set_maximum_altitude(this->get_maximum_altitude());
+
+	// Fuel and Weight
+	returnValue->set_fuel_time(this->get_fuel_time());
+	returnValue->set_fuel_weight_per_L(this->get_fuel_weight_per_L());
+	returnValue->set_fuel_flow_rate_L(this->get_fuel_float_rate_L());
+	returnValue->set_weight(this->get_weight());
+
+	// WEP System
+	returnValue->set_wep_timer(this->get_wep_timer());
+	returnValue->set_wep_overload(this->get_wep_overload());
+
+	// Aerodynamics & Propulsion
+	returnValue->set_turn_rate(this->get_turn_rate());
+	returnValue->set_optimal_turn_speed(this->get_optimal_turn_speed());
+	returnValue->set_lift_coefficent(this->get_lift_coefficent());
+	returnValue->set_engine_thrust_output(this->get_engine_thrust_output());
+
+	// PID Constants & Guidance
+	returnValue->set_PID_prop_term(this->get_PID_prop_term());
+	returnValue->set_PID_int_term(this->get_PID_int_term());
+	returnValue->set_PID_der_term(this->get_PID_der_term());
+	returnValue->set_PID_int_term_limit(this->get_PID_int_term_limit());
+	returnValue->set_integral_error_sum(this->get_integral_error_sum());
+	returnValue->set_target_elevation(this->get_target_elevation());
+
+	// Combat & Countermeasures
+	returnValue->set_proximity_fuze_radius(this->get_proximity_fuze_radius());
+	returnValue->set_chaff_count(this->get_chaff_count());
+	returnValue->set_flare_count(this->get_flare_count());
+
+	return returnValue;
+}
+
+Vector3 Flyable::getTargetVelocityVector(MapIcon *target) {
+	if (!target)
+		return Vector3(0, 0, 0);
+
+	float speed = (float)target->get_speed();
+	float yaw = Math::deg_to_rad((float)target->get_direction());
+	float pitch = Math::deg_to_rad((float)target->get_pitch());
+
+	float horizontalComp = speed * Math::cos(pitch);
+
+	float vx = horizontalComp * Math::cos(yaw);
+	float vy = horizontalComp * Math::sin(yaw);
+	float vz = speed * Math::sin(pitch);
+
+	return Vector3(vx, vy, vz);
+}
+
+uint8_t Flyable::calculateMaximumRange() {
+	float currentElevation = get_z();
+	float altitudePenalty = 1.0f;
+	float dragDecel = 9.81f;
+
+	if (maximumAltitude > 0) {
+		float altitudeRatio = Math::clamp(currentElevation / (float)maximumAltitude, 0.0f, 1.0f);
+		altitudePenalty = 1.0f - (altitudeRatio * 0.4f);
 	}
 
-	void Flyable::avoid_incoming() {
+	float effectiveMaxSpeed = get_max_speed() * altitudePenalty;
+	float stallSpeed = (float)optimalTurnSpeed;
+
+	float poweredDistance = effectiveMaxSpeed * fuelTime;
+
+	float coastDistance = 0.0f;
+	if (effectiveMaxSpeed > stallSpeed) {
+		float coastTime = (effectiveMaxSpeed - stallSpeed) / dragDecel;
+		float avgCoastSpeed = (effectiveMaxSpeed + stallSpeed) / 2.0f;
+		coastDistance = avgCoastSpeed * coastTime;
 	}
 
-	void Flyable::engage(Vehicle * target) {
+	float descentDistance = 0.0f;
+	if (currentElevation > 0.0f) {
+		float safeLiftCoef = liftCoefficent > 0.0f ? (float)liftCoefficent : 1.0f;
+		float descentRate = 50.0f / safeLiftCoef;
+		float descentTime = currentElevation / descentRate;
+
+		descentDistance = stallSpeed * descentTime;
 	}
 
-	Flyable *Flyable::clone() {
-		UtilityFunctions::print("Cloning vehicle");
-		Flyable *returnValue = memnew(Flyable);
+	float totalDistance = poweredDistance + coastDistance + descentDistance;
+	float scaledDistance = totalDistance / 1000.0f;
+	return (uint8_t)Math::clamp(scaledDistance, 0.0f, 255.0f);
+}
 
-		// map icon
-		// returnValue->set_texture(this->get_texture());
-		// returnValue->set_region_enabled(this->is_region_enabled());
-		// returnValue->set_region_rect(this->get_region_rect());
-		// returnValue->set_centered(this->is_centered());
-		// returnValue->set_visible(true);
-		returnValue->set_name(this->get_name());
-		returnValue->set_path(this->get_path());
+uint8_t Flyable::calculateMaximumEffectiveRange() {
+	float launchElevation = get_z();
+	float altitudePenalty = 1.0f;
+	float dragDecel = 9.81f;
 
-		// vehicle
-		returnValue->set_id(this->get_id());
-		UtilityFunctions::print("Cloning Radar");
-
-		returnValue->set_radar(Radar::create_prototype(this->get_radar()->get_id()));
-		returnValue->set_max_speed(this->get_max_speed());
-		returnValue->set_radar_cross_section(this->get_radar_cross_section());
-		returnValue->set_ir_signature(this->get_ir_signature());
-		returnValue->set_line_of_sight_detection(this->get_line_of_sight_detection());
-		returnValue->set_rwr_detection(this->get_rwr_detection());
-		UtilityFunctions::print("Cloning loadout");
-
-		if (this->get_loadout() != nullptr) {
-			returnValue->set_loadout(this->get_loadout()->clone());
-		} else {
-			UtilityFunctions::print("No loadout detected");
-			returnValue->set_loadout(nullptr);
-		}
-
-		// Flyable Core Stats
-		returnValue->set_despawn_if_cant_hit(this->get_despawn_if_cant_hit());
-		returnValue->set_time_to_destruction(this->get_time_to_destruction());
-		returnValue->set_maximum_altitude(this->get_maximum_altitude());
-
-		// Fuel and Weight
-		returnValue->set_fuel_time(this->get_fuel_time());
-		returnValue->set_fuel_weight_per_L(this->get_fuel_weight_per_L());
-		returnValue->set_fuel_flow_rate_L(this->get_fuel_float_rate_L());
-		returnValue->set_weight(this->get_weight());
-
-		// WEP System
-		returnValue->set_wep_timer(this->get_wep_timer());
-		returnValue->set_wep_overload(this->get_wep_overload());
-
-		// Aerodynamics & Propulsion
-		returnValue->set_turn_rate(this->get_turn_rate());
-		returnValue->set_optimal_turn_speed(this->get_optimal_turn_speed());
-		returnValue->set_lift_coefficent(this->get_lift_coefficent());
-		returnValue->set_engine_thrust_output(this->get_engine_thrust_output());
-
-		// PID Constants & Guidance
-		returnValue->set_PID_prop_term(this->get_PID_prop_term());
-		returnValue->set_PID_int_term(this->get_PID_int_term());
-		returnValue->set_PID_der_term(this->get_PID_der_term());
-		returnValue->set_PID_int_term_limit(this->get_PID_int_term_limit());
-		returnValue->set_integral_error_sum(this->get_integral_error_sum());
-		returnValue->set_target_elevation(this->get_target_elevation());
-
-		// Combat & Countermeasures
-		returnValue->set_proximity_fuze_radius(this->get_proximity_fuze_radius());
-		returnValue->set_chaff_count(this->get_chaff_count());
-		returnValue->set_flare_count(this->get_flare_count());
-
-		return returnValue;
+	if (maximumAltitude > 0) {
+		float altitudeRatio = Math::clamp(launchElevation / (float)maximumAltitude, 0.0f, 1.0f);
+		altitudePenalty = 1.0f - (altitudeRatio * 0.4f);
 	}
 
-	Vector3 Flyable::getTargetVelocityVector(MapIcon * target) {
-		if (!target)
-			return Vector3(0, 0, 0);
+	float effectiveMaxSpeed = get_max_speed() * altitudePenalty;
+	float stallSpeed = (float)optimalTurnSpeed;
 
-		float speed = (float)target->get_speed();
-		float yaw = Math::deg_to_rad((float)target->get_direction());
-		float pitch = Math::deg_to_rad((float)target->get_pitch());
+	float poweredDistance = effectiveMaxSpeed * fuelTime;
 
-		float horizontalComp = speed * Math::cos(pitch);
-
-		float vx = horizontalComp * Math::cos(yaw);
-		float vy = horizontalComp * Math::sin(yaw);
-		float vz = speed * Math::sin(pitch);
-
-		return Vector3(vx, vy, vz);
+	float coastDistance = 0.0f;
+	if (effectiveMaxSpeed > stallSpeed) {
+		float coastTime = (effectiveMaxSpeed - stallSpeed) / dragDecel;
+		float avgCoastSpeed = (effectiveMaxSpeed + stallSpeed) / 2.0f;
+		coastDistance = avgCoastSpeed * coastTime;
 	}
 
-	uint8_t Flyable::calculateMaximumRange() {
-		float currentElevation = get_z();
-		float altitudePenalty = 1.0f;
-		float dragDecel = 9.81f;
+	float totalDistance = poweredDistance + coastDistance;
 
-		if (maximumAltitude > 0) {
-			float altitudeRatio = Math::clamp(currentElevation / (float)maximumAltitude, 0.0f, 1.0f);
-			altitudePenalty = 1.0f - (altitudeRatio * 0.4f);
-		}
+	float scaledDistance = totalDistance / 1000.0f;
+	return (uint8_t)Math::clamp(scaledDistance, 0.0f, 255.0f);
+}
 
-		float effectiveMaxSpeed = get_max_speed() * altitudePenalty;
-		float stallSpeed = (float)optimalTurnSpeed;
+float Flyable::calculateImpulseAcceleration(float mass, float thrust) {
+	if (mass <= 0.0f)
+		return 0.0f;
+	return thrust / mass;
+}
 
-		float poweredDistance = effectiveMaxSpeed * fuelTime;
+Vector2 Flyable::calculateOptimalFlightPath(MapIcon * target, float deltaTime) {
+    Vector3 targetPos;
+    if (target) {
+        targetPos = Vector3(target->get_x(), target->get_y(), target->get_z());
+        lastKnownTargetPos = targetPos;
+    } else {
+        targetPos = lastKnownTargetPos;
+    }
 
-		float coastDistance = 0.0f;
-		if (effectiveMaxSpeed > stallSpeed) {
-			float coastTime = (effectiveMaxSpeed - stallSpeed) / dragDecel;
-			float avgCoastSpeed = (effectiveMaxSpeed + stallSpeed) / 2.0f;
-			coastDistance = avgCoastSpeed * coastTime;
-		}
+    float currentSpeed = (float)get_speed();
+    float optSpeed = (float)optimalTurnSpeed;
 
-		float descentDistance = 0.0f;
-		if (currentElevation > 0.0f) {
-			float safeLiftCoef = liftCoefficent > 0.0f ? (float)liftCoefficent : 1.0f;
-			float descentRate = 50.0f / safeLiftCoef;
-			float descentTime = currentElevation / descentRate;
+    // --- 1. Turn Rate Limit ---
+    float turnAuthority = 1.0f;
+    if (optSpeed > 0.0f) {
+        float ratio = currentSpeed / optSpeed;
+        turnAuthority = (currentSpeed < optSpeed) ? ratio : (1.0f / ratio);
+    }
+    turnAuthority = Math::clamp(turnAuthority, 0.1f, 1.0f);
+    float maxTurnStep = Math::deg_to_rad((float)turnRate * turnAuthority) * deltaTime;
 
-			descentDistance = stallSpeed * descentTime;
-		}
+    // --- 2. Coordinate Math ---
+    float dx = targetPos.x - get_x();
+    float dy = targetPos.y - get_y();
+    float dz = targetPos.z - get_z();
+    float groundDist = Math::sqrt(dx * dx + dy * dy);
 
-		float totalDistance = poweredDistance + coastDistance + descentDistance;
-		float scaledDistance = totalDistance / 1000.0f;
-		return (uint8_t)Math::clamp(scaledDistance, 0.0f, 255.0f);
+    // --- 3. Altitude & Lofting ---
+    float targetZ = targetPos.z;
+    if (this->despawnIfCantHitTarget && groundDist > 1500.0f) {
+        float maxLoft = (maximumAltitude > 0) ? (float)maximumAltitude * 0.8f : 5000.0f;
+        targetZ += Math::min(groundDist * targetElevation, maxLoft);
+    }
+
+    if (maximumAltitude > 0) {
+        targetZ = Math::min(targetZ, (float)maximumAltitude - 20.0f); 
+    }
+    float finalDz = targetZ - get_z();
+
+    // --- 4. Directional Logic ---
+    float desiredYaw = Math::atan2(dy, dx); 
+    // Damping pitch when close horizontally prevents the "nose-up" jitter
+    float smoothGroundDist = Math::max(groundDist, 50.0f); 
+    float desiredPitch = Math::atan2(dz, smoothGroundDist);
+
+    float currentYaw = Math::deg_to_rad(get_direction());
+    float currentPitch = Math::deg_to_rad(get_pitch());
+
+    // --- 5. Error Calculation ---
+    float yawError = desiredYaw - currentYaw;
+    while (yawError > Math_PI) yawError -= 2.0f * Math_PI;
+    while (yawError < -Math_PI) yawError += 2.0f * Math_PI;
+
+    float pitchError = desiredPitch - currentPitch;
+
+    // --- 6. PID Implementation ---
+    // YAW
+    if ((yawError > 0 && prevYawError < 0) || (yawError < 0 && prevYawError > 0)) yawIntegral = 0;
+    yawIntegral = Math::clamp(yawIntegral + (yawError * deltaTime), -PID_int_term_limit, PID_int_term_limit);
+    float yawDeriv = (yawError - prevYawError) / deltaTime;
+    float yawOutput = (PID_prop_term * yawError) + (PID_int_term * yawIntegral) + (PID_der_term * yawDeriv);
+    prevYawError = yawError;
+
+	
+    // PITCH
+    if ((pitchError > 0 && prevPitchError < 0) || (pitchError < 0 && prevPitchError > 0)) pitchIntegral = 0;
+    pitchIntegral = Math::clamp(pitchIntegral + (pitchError * deltaTime), -PID_int_term_limit, PID_int_term_limit);
+    float pitchDeriv = (pitchError - prevPitchError) / deltaTime;
+    float pitchOutput = (PID_prop_term * pitchError) + (PID_int_term * pitchIntegral) + (PID_der_term * pitchDeriv);
+    prevPitchError = pitchError;
+
+
+    // --- 7. Deadzone and Clamp ---
+    if (Math::abs(yawError) < 0.001f) yawOutput = 0;
+    if (Math::abs(pitchError) < 0.001f) pitchOutput = 0;
+
+	UtilityFunctions::print("Target: ", targetPos, " Current Yaw: ", currentYaw, " Error: ", yawError);
+	UtilityFunctions::print("Target: ", targetPos, " Current Pitch: ", currentPitch, " Error: ", pitchError);
+
+    return Vector2(
+        Math::clamp(yawOutput, -maxTurnStep, maxTurnStep),
+        Math::clamp(pitchOutput, -maxTurnStep, maxTurnStep)
+    );
+}
+
+void Flyable::calculateCollisionCourseMarker() {
+	if (!this->interceptionTarget) {
+		this->interceptionTarget = memnew(MapIcon);
 	}
 
-	uint8_t Flyable::calculateMaximumEffectiveRange() {
-		float launchElevation = get_z();
-		float altitudePenalty = 1.0f;
-		float dragDecel = 9.81f;
-
-		if (maximumAltitude > 0) {
-			float altitudeRatio = Math::clamp(launchElevation / (float)maximumAltitude, 0.0f, 1.0f);
-			altitudePenalty = 1.0f - (altitudeRatio * 0.4f);
+	if (!this->get_move_waypoint()) {
+		if (this->interceptionTarget) {
+			memdelete(this->interceptionTarget);
 		}
-
-		float effectiveMaxSpeed = get_max_speed() * altitudePenalty;
-		float stallSpeed = (float)optimalTurnSpeed;
-
-		float poweredDistance = effectiveMaxSpeed * fuelTime;
-
-		float coastDistance = 0.0f;
-		if (effectiveMaxSpeed > stallSpeed) {
-			float coastTime = (effectiveMaxSpeed - stallSpeed) / dragDecel;
-			float avgCoastSpeed = (effectiveMaxSpeed + stallSpeed) / 2.0f;
-			coastDistance = avgCoastSpeed * coastTime;
-		}
-
-		float totalDistance = poweredDistance + coastDistance;
-
-		float scaledDistance = totalDistance / 1000.0f;
-		return (uint8_t)Math::clamp(scaledDistance, 0.0f, 255.0f);
+		this->interceptionTarget = nullptr;
+		return;
 	}
 
-	float Flyable::calculateImpulseAcceleration(float mass, float thrust) {
-		if (mass <= 0.0f)
-			return 0.0f;
-		return thrust / mass;
+	MapIcon *target = this->get_move_waypoint();
+	Vector3 targetPos = Vector3(target->get_x(), target->get_y(), target->get_z());
+
+	UtilityFunctions::print("HardTargetLocation: ", targetPos);
+	if (target->get_speed() < 1) {
+		UtilityFunctions::print("target not moving");
+		this->interceptionTarget->set_x(target->get_x());
+		this->interceptionTarget->set_y(target->get_y());
+		this->interceptionTarget->set_z(target->get_z());
+		return;
 	}
 
-	Vector2 Flyable::calculateOptimalFlightPath(MapIcon * target, float deltaTime) {
-		Vector3 targetPos;
-		if (target) {
-			targetPos = Vector3(target->get_x(), target->get_y(), target->get_z());
-			lastKnownTargetPos = targetPos;
-		} else {
-			UtilityFunctions::print("Missile has lost target, IOG state entered");
-			targetPos = lastKnownTargetPos;
-		}
+	Vector3 myPos = Vector3(get_x(), get_y(), get_z());
 
-		float currentSpeed = (float)get_speed();
-		float optSpeed = (float)optimalTurnSpeed;
+	Vector3 targetVel = getTargetVelocityVector(target);
+	Vector3 myVel = getTargetVelocityVector(this);
 
-		// --- Turn Authority Logic ---
-		float turnAuthority = 1.0f;
-		if (optSpeed > 0.0f) {
-			if (currentSpeed < optSpeed) {
-				turnAuthority = currentSpeed / optSpeed;
-			} else {
-				float overspeedRatio = currentSpeed / optSpeed;
-				turnAuthority = 1.0f / overspeedRatio;
-			}
-		}
-		turnAuthority = Math::clamp(turnAuthority, 0.1f, 1.0f);
-		float maxTurnStep = Math::deg_to_rad((float)turnRate * turnAuthority) * deltaTime;
+	Vector3 deltaPos = targetPos - myPos;
+	float distance = deltaPos.length();
 
-		// --- Error Calculation ---
-		float dx = targetPos.x - get_x();
-		float dy = targetPos.y - get_y();
-		float dz = targetPos.z - get_z();
-		float groundDist = Math::sqrt(dx * dx + dy * dy);
+	Vector3 relVel = myVel - targetVel;
+	float Vc = relVel.dot(deltaPos.normalized());
 
-		// proxy fuze is in meters
-		if (groundDist < (proximityFuzeRadiusM * METERS_TO_GODOT_UNIT)) {
-			memdelete(this);
-			memdelete(this->get_move_waypoint());
-			queue_redraw();
-			return Vector2(0, 0);
-		}
+	float tti = distance / (Math::max(Vc, 0.1f));
 
-		if (this->despawnIfCantHitTarget) {
-			float desiredRelativeHeight = groundDist * targetElevation;
-			bool significantlyBelow = (dz > desiredRelativeHeight);
-			bool closeRange = (groundDist < (6 * KM_TO_GODOT_UNIT));
+	tti = Math::clamp(tti, 0.0f, 10.0f);
 
-			if (!closeRange && !significantlyBelow) {
-				dz = (targetPos.z + desiredRelativeHeight) - get_z();
-			}
-		}
+	Vector3 leadPoint = targetPos + (targetVel * tti);
 
-		float desiredYaw = Math::atan2(dy, dx);
-		float desiredPitch = Math::atan2(dz, Math::max(groundDist, 0.01f));
+	float gravityDrop = 0.5f * 9.81f * (tti * tti);
 
-		float currentYaw = Math::deg_to_rad(get_direction());
-		float currentPitch = Math::deg_to_rad(get_pitch());
-
-		float yawError = desiredYaw - currentYaw;
-		while (yawError > Math_PI)
-			yawError -= 2.0f * Math_PI;
-		while (yawError < -Math_PI)
-			yawError += 2.0f * Math_PI;
-
-		float pitchError = desiredPitch - currentPitch;
-
-		// YAW
-		yawIntegral = Math::clamp(yawIntegral + (yawError * deltaTime), -PID_int_term_limit, PID_int_term_limit);
-		float yawDeriv = (yawError - prevYawError) / deltaTime;
-		float yawOutput = (PID_prop_term * yawError) + (PID_int_term * yawIntegral) + (PID_der_term * yawDeriv);
-		prevYawError = yawError;
-
-		// PITCH
-		pitchIntegral = Math::clamp(pitchIntegral + (pitchError * deltaTime), -PID_int_term_limit, PID_int_term_limit);
-		float pitchDeriv = (pitchError - prevPitchError) / deltaTime;
-		float pitchOutput = (PID_prop_term * pitchError) + (PID_int_term * pitchIntegral) + (PID_der_term * pitchDeriv);
-		prevPitchError = pitchError;
-
-		// Clamp the PID outputs to the physical limits of the airframe
-		float clampedYawDelta = Math::clamp(yawOutput, -maxTurnStep, maxTurnStep);
-		float clampedPitchDelta = Math::clamp(pitchOutput, -maxTurnStep, maxTurnStep);
-
-		UtilityFunctions::print(clampedYawDelta);
-		UtilityFunctions::print(clampedPitchDelta);
-		return Vector2(clampedYawDelta, clampedPitchDelta);
-	}
-
-	void Flyable::calculateCollisionCourseMarker() {
-		if (!this->interceptionTarget) {
-			this->interceptionTarget = memnew(MapIcon);
-		}
-
-		if (!this->get_move_waypoint()) {
-			if (this->interceptionTarget) {
-				memdelete(this->interceptionTarget);
-			}
-			this->interceptionTarget = nullptr;
-			return;
-		}
-
-		MapIcon *target = this->get_move_waypoint();
-
-		Vector3 targetPos = Vector3(target->get_x(), target->get_y(), target->get_z());
-		Vector3 myPos = Vector3(get_x(), get_y(), get_z());
-
-		Vector3 targetVel = getTargetVelocityVector(target);
-		Vector3 myVel = getTargetVelocityVector(this);
-
-		Vector3 deltaPos = targetPos - myPos;
-		float distance = deltaPos.length();
-
-		Vector3 relVel = myVel - targetVel;
-		float Vc = relVel.dot(deltaPos.normalized());
-
-		float tti = distance / (Math::max(Vc, 0.1f));
-
-		tti = Math::clamp(tti, 0.0f, 10.0f);
-
-		Vector3 leadPoint = targetPos + (targetVel * tti);
-
-		float gravityDrop = 0.5f * 9.81f * (tti * tti);
-
-		this->interceptionTarget->set_x(leadPoint.x);
-		this->interceptionTarget->set_y(leadPoint.y);
-		this->interceptionTarget->set_z(leadPoint.z + gravityDrop);
-		UtilityFunctions::print(leadPoint);
-	}
+	this->interceptionTarget->set_x(leadPoint.x);
+	this->interceptionTarget->set_y(leadPoint.y);
+	this->interceptionTarget->set_z(leadPoint.z + gravityDrop);
+}

@@ -22,7 +22,7 @@ godot::Label *godot::GlobalManager::thrustDeltaValue = nullptr;
 godot::Label *godot::GlobalManager::fuelTimeTitle = nullptr;
 godot::Label *godot::GlobalManager::fuelTimeValue = nullptr;
 
-godot::PanelContainer *godot::GlobalManager::zUnitPopupUI = nullptr;
+godot::Control *godot::GlobalManager::zUnitPopupUI = nullptr;
 godot::Label *godot::GlobalManager::altTitle = nullptr;
 godot::Label *godot::GlobalManager::AltValue = nullptr;
 godot::HSlider *godot::GlobalManager::altSlider = nullptr;
@@ -54,26 +54,30 @@ void godot::GlobalManager::_process(double delta) {
 
 void godot::GlobalManager::_input(const Ref<InputEvent> &event) {
     Ref<InputEventMouseButton> mouse_event = event;
-    Vector2 local_click_pos = get_local_mouse_position();
 
     if (mouse_event.is_valid() && mouse_event->is_pressed() && 
         mouse_event->get_button_index() == MOUSE_BUTTON_RIGHT) {
+        
         if (GlobalManager::selected_vehicle != nullptr) {
+            Vector2 global_click_pos = get_global_mouse_position();
+
             MapIcon *wayPoint = memnew(MapIcon);
             
-			wayPoint->set_x(local_click_pos.x);
-			wayPoint->set_y(local_click_pos.y);
+            wayPoint->set_x(global_click_pos.x);
+            wayPoint->set_y(global_click_pos.y); 
+            wayPoint->set_z(GlobalManager::altSlider->get_value());
 
-			this->selected_vehicle->set_move_waypoint(wayPoint);
-			this->add_child(wayPoint);
+            this->selected_vehicle->set_move_waypoint(wayPoint);
+            
+            get_tree()->get_root()->add_child(wayPoint);
 
-            UtilityFunctions::print("Created MapIcon at: ", local_click_pos, " for vehicle: ", selected_vehicle->get_name());
+            UtilityFunctions::print("Created MapIcon at: ", global_click_pos);
         }
     }
 }
 
 void GlobalManager::_notification(int p_what) {
-	if (p_what == Node::NOTIFICATION_READY) {
+	if (p_what == Node::NOTIFICATION_READY) {	
 		MyCamera* mainCamera = memnew(MyCamera);
 		mainCamera->set_name("MainCamera");
 		add_child(mainCamera);
@@ -85,6 +89,34 @@ void GlobalManager::_notification(int p_what) {
 
 		ResourceLoader *rl = ResourceLoader::get_singleton();
 		Ref<PackedScene> scene_res = rl->load("res://UI/VehicleInfoPopup.tscn");
+		Ref<PackedScene> z_scene_res = rl->load("res://UI/WaypointSetterPopup.tscn");
+
+
+		if (z_scene_res.is_valid()){
+			Node* instance = z_scene_res->instantiate();
+			this->zUnitPopupUI = Object::cast_to<Control>(instance);
+
+			CanvasLayer* zlayer = memnew(CanvasLayer);
+			zlayer->set_layer(100);
+			add_child(zlayer);
+			zlayer->add_child(this->zUnitPopupUI);
+			this->zUnitPopupUI->set_visible(false);
+			this->zUnitPopupUI->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
+			this->zUnitPopupUI->set_anchors_preset(Control::PRESET_BOTTOM_LEFT);
+
+
+
+			this->zUnitPopupUI->set_offset(Side::SIDE_RIGHT, 0);
+			this->zUnitPopupUI->set_offset(Side::SIDE_TOP, -28);
+
+
+			this->altTitle = Object::cast_to<Label>(this->zUnitPopupUI->get_node_or_null("PanelContainer/MarginContainer/GridContainer/altitudeTitle"));
+			this->AltValue = Object::cast_to<Label>(this->zUnitPopupUI->get_node_or_null("PanelContainer/MarginContainer/GridContainer/altitudeValue"));
+			this->altSlider = Object::cast_to<HSlider>(this->zUnitPopupUI->get_node_or_null("PanelContainer/MarginContainer/GridContainer/HSlider"));
+			this->altSlider->set_value(0.0);
+			this->altSlider->connect("value_changed", Callable(this, "_on_alt_slider_value_changed"));
+		}
+
 
 		if (scene_res.is_valid()) {
 			Node *instance = scene_res->instantiate();
@@ -92,7 +124,7 @@ void GlobalManager::_notification(int p_what) {
 
 			if (this->popupUI) {
 				CanvasLayer *layer = memnew(CanvasLayer);
-				layer->set_layer(100);
+				layer->set_layer(99);
 				add_child(layer);
 				layer->add_child(this->popupUI);
 				this->popupUI->set_visible(false);
@@ -117,20 +149,6 @@ void GlobalManager::_notification(int p_what) {
 				
 				
 				this->targetList  = Object::cast_to<GridContainer>(this->popupUI->get_node_or_null("PanelContainer/MarginContainer/GridContainer/targetList"));
-
-				this->zUnitPopupUI = Object::cast_to<PanelContainer>(this->popupUI->get_node_or_null("z_panel_container"));
-				if (this->zUnitPopupUI){
-					this->altTitle = Object::cast_to<Label>(this->popupUI->get_node_or_null("z_panel_container/MarginContainer/GridContainer/altitudeTitle"));
-					this->AltValue = Object::cast_to<Label>(this->popupUI->get_node_or_null("z_panel_container/MarginContainer/GridContainer/altitudeValue"));
-					this->altSlider = Object::cast_to<HSlider>(this->popupUI->get_node_or_null("z_panel_container/MarginContainer/GridContainer/HSlider"));
-					this->altSlider->set_value(0.0);
-
-				} else {
-					UtilityFunctions::print("ERROR: Could not find zUnit Object");
-				}
-
-
-
 
 				if (!this->fuelTimeValue) {
 					UtilityFunctions::print("ERROR: Could not find UI Labels! Check your NodePaths.");
@@ -223,6 +241,7 @@ void GlobalManager::_bind_methods() {
 	ClassDB::bind_static_method("GlobalManager", D_METHOD("get_vehicle_from_id", "id"), &GlobalManager::get_vehicle_from_id);
 	ClassDB::bind_static_method("GlobalManager", D_METHOD("get_radar_from_id", "id"), &GlobalManager::get_radar_from_id);
 	ClassDB::bind_method(D_METHOD("_on_vehicle_selected", "p_vehicle_obj"), &GlobalManager::_on_vehicle_selected);
+	ClassDB::bind_method(D_METHOD("_on_alt_slider_value_changed", "p_value"), &GlobalManager::_on_alt_slider_value_changed);
 
 	ClassDB::bind_static_method("GlobalManager", D_METHOD("get_singleton"), &GlobalManager::get_singleton);
 }
@@ -264,6 +283,10 @@ godot::GlobalManager::~GlobalManager() {
 
 	// we are the singleton, we are being deleted as soon as this line finishes
 	GlobalManager::singleton = nullptr;
+}
+
+void godot::GlobalManager::_on_alt_slider_value_changed(double p_value) {
+	GlobalManager::AltValue->set_text(String::num(p_value));
 }
 
 Vector<Vehicle *> godot::GlobalManager::get_active_vehicles() {
@@ -346,11 +369,21 @@ void godot::GlobalManager::set_selected_vehicle(Vehicle *p_vehicle) {
         selected_vehicle->select();
         if (GlobalManager::popupUI) {
             GlobalManager::popupUI->show();
+			GlobalManager::altSlider->set_value(0.0);
+
+			Flyable* flyable_v = Object::cast_to<Flyable>(p_vehicle);
+			if (flyable_v){
+				GlobalManager::altSlider->set_value(flyable_v->get_z());
+				GlobalManager::altSlider->set_max(flyable_v->get_maximum_altitude());
+				GlobalManager::zUnitPopupUI->show();
+			}
+
             selected_vehicle->UItick(0);
         }
     } else {
         if (GlobalManager::popupUI) {
             GlobalManager::popupUI->hide();
+			GlobalManager::zUnitPopupUI->hide();
         }
 		if (MyCamera* cam = MyCamera::getSingleton()) {
             cam->set_follow_target(nullptr);
@@ -536,14 +569,4 @@ void godot::GlobalManager::resize_ui() {
             GlobalManager::popupUI->set_size(min_size);
         }
     }
-
-	if (GlobalManager::zUnitPopupUI) {
-		UtilityFunctions::print("xxx");
-		GlobalManager::zUnitPopupUI->set_anchors_and_offsets_preset(Control::LayoutPreset::PRESET_BOTTOM_LEFT);
-
-		Vector2 z_min_size = GlobalManager::zUnitPopupUI->get_combined_minimum_size();
-		
-		GlobalManager::zUnitPopupUI->set_begin(Vector2(0, -z_min_size.y));
-		GlobalManager::zUnitPopupUI->set_end(Vector2(z_min_size.x, 0));
-	}
 }

@@ -45,7 +45,7 @@ private:
     static Label* fuelTimeValue;
     static GridContainer* targetList;
 
-    static PanelContainer* zUnitPopupUI;
+    static Control* zUnitPopupUI;
     static Label* altTitle;
     static Label* AltValue;
     static HSlider* altSlider;
@@ -69,6 +69,8 @@ protected:
 public:
     GlobalManager();
     ~GlobalManager();
+
+    void _on_alt_slider_value_changed(double p_value);
 
     void _physics_process(double delta) override;
     void _process(double delta) override;

@@ -60,7 +60,7 @@ private:
     uint8_t chaffCount;
     uint8_t flareCount;
 
-    MapIcon* interceptionTarget;
+    MapIcon* interceptionTarget = nullptr;
 
 public:
     Flyable();

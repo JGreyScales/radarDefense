@@ -109,10 +109,10 @@ void objectCreationList::F14B() {
     F14B_Plane->set_fuel_weight_per_L(5.09);
     F14B_Plane->set_fuel_flow_rate_L(1);
     F14B_Plane->set_engine_thrust_output(12400);
-    F14B_Plane->set_PID_prop_term(0.008);
-    F14B_Plane->set_PID_int_term(0.01);
+    F14B_Plane->set_PID_prop_term(0.05);
+    F14B_Plane->set_PID_int_term(0.001);
     F14B_Plane->set_PID_int_term_limit(1);
-    F14B_Plane->set_PID_der_term(0.001);
+    F14B_Plane->set_PID_der_term(0.01);
     F14B_Plane->set_target_elevation(0);
     F14B_Plane->set_turn_rate(15);
     F14B_Plane->set_optimal_turn_speed(781);
